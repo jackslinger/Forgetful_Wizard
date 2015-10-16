@@ -1,11 +1,12 @@
 import libtcodpy as libtcod
+import object
 
 SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 50
 LIMIT_FPS = 20
 
 def handle_keys():
-	global playerx, playery
+	global player
 
 	#key = libtcod.console_check_for_keypress()  #real-time
 	key = libtcod.console_wait_for_keypress(True)  #turn-based
@@ -18,30 +19,31 @@ def handle_keys():
 		return True  #exit game
 
 	if libtcod.console_is_key_pressed(libtcod.KEY_UP):
-		playery -= 1
+		player.y -= 1
 
 	elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN):
-		playery += 1
+		player.y += 1
 
 	elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT):
-		playerx -= 1
+		player.x -= 1
 
 	elif libtcod.console_is_key_pressed(libtcod.KEY_RIGHT):
-		playerx += 1
+		player.x += 1
 
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/libtcod tutorial', False)
+con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 
-playerx = SCREEN_WIDTH/2
-playery = SCREEN_HEIGHT/2
+player = Object(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, '@', libtcod.white)
 
 while not libtcod.console_is_window_closed():
 	libtcod.console_set_default_foreground(0, libtcod.white)
-	libtcod.console_put_char(0, playerx, playery, '@', libtcod.BKGND_NONE)
-	
+	libtcod.console_put_char(con, player.x, player.y, '@', libtcod.BKGND_NONE)
+
+	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 	libtcod.console_flush()
 
-	libtcod.console_put_char(0, playerx, playery, ' ', libtcod.BKGND_NONE)
+	libtcod.console_put_char(con, player.x, player.y, ' ', libtcod.BKGND_NONE)
 
 	exit = handle_keys()
 	if exit:
