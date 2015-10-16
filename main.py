@@ -1,5 +1,5 @@
 import libtcodpy as libtcod
-import object
+from dungeon import *
 
 SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 50
