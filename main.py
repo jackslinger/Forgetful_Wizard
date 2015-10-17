@@ -34,11 +34,13 @@ libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | 
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/libtcod tutorial', False)
 con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 
+map = Map(SCREEN_WIDTH, SCREEN_HEIGHT)
+
 player = Object(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, '@', libtcod.white)
 
 while not libtcod.console_is_window_closed():
-	libtcod.console_set_default_foreground(0, libtcod.white)
-	libtcod.console_put_char(con, player.x, player.y, '@', libtcod.BKGND_NONE)
+	map.draw(con)
+	player.draw(con)
 
 	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 	libtcod.console_flush()

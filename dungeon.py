@@ -40,18 +40,23 @@ class Tile:
         self.blocks_light = blocks_light
         self.blocks_passage = blocks_passage
 
-    def draw(self, console):
+    def draw(self, console, x, y):
         #Delegate the task of drawing to the sprite
-        self.sprite.draw()
+        self.sprite.draw(console, x, y)
 
 
 class Map:
     """The Map represents one floor of the dungeon and owns all of the objects
     on that floor. It draws it's self and delegates drawing to objects"""
     def __init__(self, width, height):
-        super(Map, self).__init__()
         self.width = width
         self.height = height
         self.tiles = [[Tile('.', libtcod.white, False, False)
             for y in range(self.height)]
                 for x in range(self.width)]
+
+    def draw(self, console):
+        #The Map first draws all of the tiles, then any items, then the player and monsters
+        for y in range(self.height):
+            for x in range(self.width):
+                self.tiles[x][y].draw(console, x, y)
