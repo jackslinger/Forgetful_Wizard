@@ -54,7 +54,7 @@ class Map:
         self.tiles = [[Tile('.', libtcod.white, False, False)
             for y in range(self.height)]
                 for x in range(self.width)]
-        self.objects = []
+        self.pieces = []
 
     def draw(self, console):
         #The Map first draws all of the tiles, then any items, then the player and monsters
@@ -62,5 +62,8 @@ class Map:
             for x in range(self.width):
                 self.tiles[x][y].draw(console, x, y)
 
+        for piece in self.pieces:
+            piece.draw(console)
+
     def addPiece(self, piece):
-        objects.append(piece)
+        self.pieces.append(piece)
