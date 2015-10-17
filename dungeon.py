@@ -12,7 +12,7 @@ class Sprite(object):
         libtcod.console_set_default_foreground(console, self.color)
         libtcod.console_put_char(console, x, y, self.char, libtcod.BKGND_NONE)
 
-class Object:
+class Piece:
     #this is a generic object: the player, a monster, an item, the stairs...
     #it's always represented by a character on screen.
     def __init__(self, x, y, char, color):
@@ -54,9 +54,13 @@ class Map:
         self.tiles = [[Tile('.', libtcod.white, False, False)
             for y in range(self.height)]
                 for x in range(self.width)]
+        self.objects = []
 
     def draw(self, console):
         #The Map first draws all of the tiles, then any items, then the player and monsters
         for y in range(self.height):
             for x in range(self.width):
                 self.tiles[x][y].draw(console, x, y)
+
+    def addPiece(self, piece):
+        objects.append(piece)

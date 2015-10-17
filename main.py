@@ -36,7 +36,7 @@ con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 map = Map(SCREEN_WIDTH, SCREEN_HEIGHT)
 
-player = Object(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, '@', libtcod.white)
+player = Piece(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, '@', libtcod.white)
 
 while not libtcod.console_is_window_closed():
 	map.draw(con)
