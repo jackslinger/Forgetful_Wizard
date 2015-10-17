@@ -5,9 +5,7 @@ SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 50
 LIMIT_FPS = 20
 
-def handle_keys():
-	global player
-
+def handle_keys(player):
 	#key = libtcod.console_check_for_keypress()  #real-time
 	key = libtcod.console_wait_for_keypress(True)  #turn-based
 
@@ -34,19 +32,14 @@ libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | 
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/libtcod tutorial', False)
 con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 
-player = Piece(SCREEN_WIDTH/2, SCREEN_HEIGHT/2, '@', libtcod.white)
-
-map = Map(SCREEN_WIDTH, SCREEN_HEIGHT)
-map.addPiece(player)
+board = Board(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 while not libtcod.console_is_window_closed():
-	map.draw(con)
+	board.draw(con)
 
 	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 	libtcod.console_flush()
 
-	libtcod.console_put_char(con, player.x, player.y, ' ', libtcod.BKGND_NONE)
-
-	exit = handle_keys()
+	exit = handle_keys(board.player)
 	if exit:
 		break

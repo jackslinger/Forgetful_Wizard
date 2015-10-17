@@ -44,26 +44,33 @@ class Tile:
         #Delegate the task of drawing to the sprite
         self.sprite.draw(console, x, y)
 
-
 class Map:
-    """The Map represents one floor of the dungeon and owns all of the objects
-    on that floor. It draws it's self and delegates drawing to objects"""
+    """The Map represents the floor and walls of the dungeon."""
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.tiles = [[Tile('.', libtcod.white, False, False)
+        self.tiles = [[Tile(' ', libtcod.white, True, True)
             for y in range(self.height)]
                 for x in range(self.width)]
-        self.pieces = []
 
     def draw(self, console):
-        #The Map first draws all of the tiles, then any items, then the player and monsters
+        #The Map draws all of the tiles.
         for y in range(self.height):
             for x in range(self.width):
                 self.tiles[x][y].draw(console, x, y)
 
+class Board(object):
+    """The Board represents one whole floor of the dungeon with a map, and objects.
+    It also contains the logic for moving around and fighting."""
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.map = Map(width, height)
+        self.player = Piece(self.width/2, self.height/2, '@', libtcod.white)
+        self.pieces = [self.player]
+
+    def draw(self, console):
+        #Draw the map, then draw the objects
+        self.map.draw(console)
         for piece in self.pieces:
             piece.draw(console)
-
-    def addPiece(self, piece):
-        self.pieces.append(piece)
