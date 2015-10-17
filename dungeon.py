@@ -20,11 +20,6 @@ class Piece:
         self.y = y
         self.sprite = Sprite(char, color)
 
-    def move(self, dx, dy):
-        #move by the given amount
-        self.x += dx
-        self.y += dy
-
     def draw(self, console):
         self.sprite.draw(console, self.x, self.y)
         #Delegate the task of drawing to the sprite
@@ -59,6 +54,19 @@ class Map:
             for x in range(self.width):
                 self.tiles[x][y].draw(console, x, y)
 
+    def carve_room(self, start_x, start_y, width, height):
+        end_x = start_x + width - 1
+        end_y = start_y + height - 1
+        for y in range(start_y, end_y + 1):
+            for x in range(start_x, end_x + 1):
+                if x == start_x or y == start_y or x == end_x or y == end_y:
+                    self.tiles[x][y] = Tile('#', libtcod.white, True, True)
+                else:
+                    self.tiles[x][y] = Tile('.', libtcod.white, False, False)
+
+    def generate(self):
+        self.carve_room(38, 23, 5, 5)
+
 class Board(object):
     """The Board represents one whole floor of the dungeon with a map, and objects.
     It also contains the logic for moving around and fighting."""
@@ -66,6 +74,7 @@ class Board(object):
         self.width = width
         self.height = height
         self.map = Map(width, height)
+        self.map.generate()
         self.player = Piece(self.width/2, self.height/2, '@', libtcod.white)
         self.pieces = [self.player]
 
@@ -74,3 +83,12 @@ class Board(object):
         self.map.draw(console)
         for piece in self.pieces:
             piece.draw(console)
+
+    def move(self, piece, dx, dy):
+        #Move by the given amount
+        new_x = piece.x + dx
+        new_y = piece.y + dy
+
+        if not self.map.tiles[new_x][new_y].blocks_passage:
+            piece.x = new_x
+            piece.y = new_y

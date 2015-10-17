@@ -5,7 +5,9 @@ SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 50
 LIMIT_FPS = 20
 
-def handle_keys(player):
+def handle_keys(board):
+	player = board.player
+
 	#key = libtcod.console_check_for_keypress()  #real-time
 	key = libtcod.console_wait_for_keypress(True)  #turn-based
 
@@ -17,16 +19,16 @@ def handle_keys(player):
 		return True  #exit game
 
 	if libtcod.console_is_key_pressed(libtcod.KEY_UP):
-		player.y -= 1
+		board.move(player,0,-1)
 
 	elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN):
-		player.y += 1
+		board.move(player,0,1)
 
 	elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT):
-		player.x -= 1
+		board.move(player,-1,0)
 
 	elif libtcod.console_is_key_pressed(libtcod.KEY_RIGHT):
-		player.x += 1
+		board.move(player,1,0)
 
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/libtcod tutorial', False)
@@ -40,6 +42,6 @@ while not libtcod.console_is_window_closed():
 	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 	libtcod.console_flush()
 
-	exit = handle_keys(board.player)
+	exit = handle_keys(board)
 	if exit:
 		break
