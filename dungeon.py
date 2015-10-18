@@ -64,8 +64,28 @@ class Map:
                 else:
                     self.tiles[x][y] = Tile('.', libtcod.white, False, False)
 
+    def carve_corridor(self, start_x, start_y, end_x, end_y):
+        if end_x < start_x:
+            temp = start_x
+            start_x = end_x
+            end_x = temp
+        if end_y < start_y:
+            temp = start_y
+            start_y = end_y
+            end_y = temp
+
+        for y in range(start_y, end_y + 1):
+            for x in range(start_x, end_x + 1):
+                self.tiles[x][y] = Tile(',', libtcod.white, False, False)
+
     def generate(self):
         self.carve_room(38, 23, 5, 5)
+        self.carve_room(3, 4, 30, 26)
+        self.carve_room(35, 10, 20, 10)
+
+        #Corridoors
+        self.carve_corridor(32, 15, 35, 15)
+        self.carve_corridor(32, 25, 38, 25)
 
 class Board(object):
     """The Board represents one whole floor of the dungeon with a map, and objects.
