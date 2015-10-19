@@ -15,10 +15,11 @@ class Sprite(object):
 class Piece:
     #this is a generic object: the player, a monster, an item, the stairs...
     #it's always represented by a character on screen.
-    def __init__(self, x, y, char, color):
+    def __init__(self, x, y, char, color, blocks_passage):
         self.x = x
         self.y = y
         self.sprite = Sprite(char, color)
+        self.blocks_passage = blocks_passage
 
     def draw(self, console):
         self.sprite.draw(console, self.x, self.y)
@@ -94,8 +95,7 @@ class Board(object):
         self.width = width
         self.height = height
         self.map = Map(width, height)
-        self.map.generate()
-        self.player = Piece(self.width/2, self.height/2, '@', libtcod.white)
+        self.player = Piece(self.width/2, self.height/2, '@', libtcod.white, True)
         self.pieces = [self.player]
 
     def draw(self, console):
@@ -104,11 +104,23 @@ class Board(object):
         for piece in self.pieces:
             piece.draw(console)
 
+    def generate(self):
+        self.map.generate()
+        self.pieces.append(Piece(5, 5, 'o', libtcod.green, True))
+        self.pieces.append(Piece(35, self.height/2, 'T', libtcod.green, True))
+
+
     def move(self, piece, dx, dy):
         #Move by the given amount
         new_x = piece.x + dx
         new_y = piece.y + dy
 
-        if not self.map.tiles[new_x][new_y].blocks_passage:
+        blocked_by_piece = False
+
+        for other in self.pieces:
+            if other.blocks_passage and other.x == new_x and other.y == new_y:
+                blocked_by_piece = True
+
+        if not (self.map.tiles[new_x][new_y].blocks_passage or blocked_by_piece):
             piece.x = new_x
             piece.y = new_y

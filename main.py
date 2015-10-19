@@ -35,6 +35,7 @@ libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/libtcod tutorial'
 con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 
 board = Board(SCREEN_WIDTH, SCREEN_HEIGHT)
+board.generate()
 
 while not libtcod.console_is_window_closed():
 	board.draw(con)
