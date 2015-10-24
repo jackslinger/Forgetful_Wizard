@@ -15,11 +15,16 @@ class Sprite(object):
 class Piece:
     #this is a generic object: the player, a monster, an item, the stairs...
     #it's always represented by a character on screen.
-    def __init__(self, x, y, char, color, blocks_passage):
+    def __init__(self, x, y, char, color, name, blocks_passage, fighter):
         self.x = x
         self.y = y
         self.sprite = Sprite(char, color)
+        self.name = name
         self.blocks_passage = blocks_passage
+
+        self.fighter = fighter
+        if self.fighter:
+            self.fighter.owner = self
 
     def draw(self, console):
         self.sprite.draw(console, self.x, self.y)
@@ -28,6 +33,13 @@ class Piece:
     def clear(self, console):
         #erase the character that represents this object
         libtcod.console_put_char(console, self.x, self.y, ' ', libtcod.BKGND_NONE)
+
+class Fighter:
+    #This class contains all the data and methods needed for a piece to fight.
+    def __init__(self, hp, power):
+        self.max_hp = hp
+        self.hp = hp
+        self.power = power
 
 class Tile:
     """A Tile represents a part of the map, it can block light and or passage"""
@@ -95,7 +107,8 @@ class Board(object):
         self.width = width
         self.height = height
         self.map = Map(width, height)
-        self.player = Piece(self.width/2, self.height/2, '@', libtcod.white, True)
+        player_fighter = Fighter(hp=5, power=1)
+        self.player = Piece(self.width/2, self.height/2, '@', libtcod.white, "Hero", blocks_passage=True, fighter=player_fighter)
         self.pieces = [self.player]
 
     def draw(self, console):
@@ -106,21 +119,30 @@ class Board(object):
 
     def generate(self):
         self.map.generate()
-        self.pieces.append(Piece(5, 5, 'o', libtcod.green, True))
-        self.pieces.append(Piece(35, self.height/2, 'T', libtcod.green, True))
+        orc_fighter = Fighter(hp=1, power=1)
+        self.pieces.append(Piece(5, 5, 'o', libtcod.green, "Orc", True, orc_fighter))
+        troll_fighter = Fighter(hp=2, power=1)
+        self.pieces.append(Piece(35, self.height/2, 'T', libtcod.green, "Troll", True, troll_fighter))
 
 
     def move(self, piece, dx, dy):
-        #Move by the given amount
+        #Get the co-ordinates of the destination
         new_x = piece.x + dx
         new_y = piece.y + dy
 
-        blocked_by_piece = False
-
+        #Check if the destination is blocked by a piece
+        blocking_piece = None
         for other in self.pieces:
             if other.blocks_passage and other.x == new_x and other.y == new_y:
-                blocked_by_piece = True
+                #Set the blocking piece, if more than one the last one will be picked
+                blocking_piece = other
 
-        if not (self.map.tiles[new_x][new_y].blocks_passage or blocked_by_piece):
+        #If blocked by a piece
+        if (blocking_piece != None):
+            #Attack the piece if possible
+            if (blocking_piece.fighter):
+                print "You Attack the " + blocking_piece.name + "!"
+        elif not (self.map.tiles[new_x][new_y].blocks_passage):
+            #Move to the destination
             piece.x = new_x
             piece.y = new_y
