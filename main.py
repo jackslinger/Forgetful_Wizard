@@ -14,8 +14,6 @@ def handle_keys(board):
 	key = libtcod.Key()
 	mouse = libtcod.Mouse()
 	libtcod.sys_wait_for_event(libtcod.EVENT_KEY_PRESS,key,mouse,False)
-	print key.c
-	print key.pressed
 
 	if key.vk == libtcod.KEY_ENTER and key.lalt:
 		#Alt+Enter: toggle fullscreen

@@ -40,6 +40,18 @@ class Fighter:
         self.max_hp = hp
         self.hp = hp
         self.power = power
+        self.dead = False
+        self.owner = False
+
+    def takeDamage(self, amount):
+        if self.hp > amount:
+            self.hp -= amount
+        else:
+            self.hp = 0
+            self.dead = True
+            if self.owner:
+                self.owner.blocks_passage = False
+                self.owner.sprite = Sprite('%', libtcod.red)
 
 class Tile:
     """A Tile represents a part of the map, it can block light and or passage"""
@@ -142,6 +154,7 @@ class Board(object):
             #Attack the piece if possible
             if (blocking_piece.fighter):
                 print "You Attack the " + blocking_piece.name + "!"
+                blocking_piece.fighter.takeDamage(piece.fighter.power)
         elif not (self.map.tiles[new_x][new_y].blocks_passage):
             #Move to the destination
             piece.x = new_x
