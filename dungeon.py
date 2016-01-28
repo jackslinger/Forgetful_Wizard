@@ -137,7 +137,7 @@ class Board(object):
         self.pieces.append(Piece(35, self.height/2, 'T', libtcod.green, "Troll", True, troll_fighter))
 
 
-    def move(self, piece, dx, dy):
+    def move_or_attack(self, piece, dx, dy):
         #Get the co-ordinates of the destination
         new_x = piece.x + dx
         new_y = piece.y + dy
@@ -152,9 +152,12 @@ class Board(object):
         #If blocked by a piece
         if (blocking_piece != None):
             #Attack the piece if possible
-            if (blocking_piece.fighter):
-                print "You Attack the " + blocking_piece.name + "!"
+            if (blocking_piece.fighter and piece.fighter):
+                print "The " + piece.name + " attacks the " + blocking_piece.name + "!"
                 blocking_piece.fighter.takeDamage(piece.fighter.power)
+            else:
+                #Moving has failed, should not take up a turn
+                print "The " + piece.name + " bumbs into the " + blocking_piece.name
         elif not (self.map.tiles[new_x][new_y].blocks_passage):
             #Move to the destination
             piece.x = new_x

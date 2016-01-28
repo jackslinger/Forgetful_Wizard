@@ -23,16 +23,16 @@ def handle_keys(board):
 
 	if (game_state == "playing"):
 		if libtcod.console_is_key_pressed(libtcod.KEY_UP) or key.vk == libtcod.KEY_KP8:
-			board.move(player,0,-1)
+			board.move_or_attack(player,0,-1)
 			return "moved"
 		elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN) or key.vk == libtcod.KEY_KP2:
-			board.move(player,0,1)
+			board.move_or_attack(player,0,1)
 			return "moved"
 		elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT) or key.vk == libtcod.KEY_KP4:
-			board.move(player,-1,0)
+			board.move_or_attack(player,-1,0)
 			return "moved"
 		elif libtcod.console_is_key_pressed(libtcod.KEY_RIGHT) or key.vk == libtcod.KEY_KP6:
-			board.move(player,1,0)
+			board.move_or_attack(player,1,0)
 			return "moved"
 
 
