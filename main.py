@@ -5,30 +5,38 @@ SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 50
 LIMIT_FPS = 20
 
+game_state = "playing"
+player_action = None
+
 def handle_keys(board):
 	player = board.player
 
-	#key = libtcod.console_check_for_keypress()  #real-time
-	key = libtcod.console_wait_for_keypress(True)  #turn-based
+	key = libtcod.Key()
+	mouse = libtcod.Mouse()
+	libtcod.sys_wait_for_event(libtcod.EVENT_KEY_PRESS,key,mouse,False)
+	print key.c
+	print key.pressed
 
 	if key.vk == libtcod.KEY_ENTER and key.lalt:
 		#Alt+Enter: toggle fullscreen
 		libtcod.console_set_fullscreen(not libtcod.console_is_fullscreen())
-
 	elif key.vk == libtcod.KEY_ESCAPE:
-		return True  #exit game
+		return "exit"  #exit game
 
-	if libtcod.console_is_key_pressed(libtcod.KEY_UP):
-		board.move(player,0,-1)
+	if (game_state == "playing"):
+		if libtcod.console_is_key_pressed(libtcod.KEY_UP) or key.vk == libtcod.KEY_KP8:
+			board.move(player,0,-1)
+			return "moved"
+		elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN) or key.vk == libtcod.KEY_KP2:
+			board.move(player,0,1)
+			return "moved"
+		elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT) or key.vk == libtcod.KEY_KP4:
+			board.move(player,-1,0)
+			return "moved"
+		elif libtcod.console_is_key_pressed(libtcod.KEY_RIGHT) or key.vk == libtcod.KEY_KP6:
+			board.move(player,1,0)
+			return "moved"
 
-	elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN):
-		board.move(player,0,1)
-
-	elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT):
-		board.move(player,-1,0)
-
-	elif libtcod.console_is_key_pressed(libtcod.KEY_RIGHT):
-		board.move(player,1,0)
 
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/libtcod tutorial', False)
@@ -43,6 +51,6 @@ while not libtcod.console_is_window_closed():
 	libtcod.console_blit(con, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 0)
 	libtcod.console_flush()
 
-	exit = handle_keys(board)
-	if exit:
+	player_action = handle_keys(board)
+	if player_action == "exit":
 		break
