@@ -5,10 +5,10 @@ SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 50
 LIMIT_FPS = 20
 
-game_state = "playing"
 player_action = None
 
 def handle_keys(board):
+	game_state = board.game.game_state
 	player = board.player
 
 	key = libtcod.Key()
@@ -70,13 +70,17 @@ def handle_keys(board):
 				return "moved"
 			else:
 				return "not_moved"
+		elif key.c == ord('.'):
+			#Wait in one place
+			return "waiting"
 
 
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/libtcod tutorial', False)
 con = libtcod.console_new(SCREEN_WIDTH, SCREEN_HEIGHT)
 
-board = Board(SCREEN_WIDTH, SCREEN_HEIGHT)
+game = Game()
+board = Board(SCREEN_WIDTH, SCREEN_HEIGHT, game)
 board.generate()
 
 while not libtcod.console_is_window_closed():
@@ -88,7 +92,7 @@ while not libtcod.console_is_window_closed():
 	player_action = handle_keys(board)
 	if player_action == "exit":
 		break
-	elif player_action == "moved":
+	elif player_action == "moved" or player_action == "waiting":
 		for piece in board.pieces:
 			if piece.ai:
 				piece.ai.take_turn()

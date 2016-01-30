@@ -1,6 +1,11 @@
 import libtcodpy as libtcod
 import math
 
+class Game():
+    """Stores the current game state. Maybe should be a singleton"""
+    def __init__(self):
+        self.game_state = "playing"
+
 class Sprite(object):
     """A Sprite represents a colored char that can draw it's self at a given position"""
     def __init__(self, char, color):
@@ -64,6 +69,15 @@ def monster_death(monster):
     monster.fighter = None
     monster.name = monster.name + " corpse"
     monster.board.move_to_back(monster)
+
+def player_death(player):
+    print "The Hero dies! Game Over!"
+    player.blocks_passage = False
+    player.sprite = Sprite('@', libtcod.red)
+    player.fighter = None
+    player.name = "Hero's corpse"
+    player.board.move_to_back(player)
+    player.board.game.game_state = "game_over"
 
 class Fighter:
     #This class contains all the data and methods needed for a piece to fight.
@@ -148,11 +162,12 @@ class Map:
 class Board(object):
     """The Board represents one whole floor of the dungeon with a map, and objects.
     It also contains the logic for moving around and fighting."""
-    def __init__(self, width, height):
+    def __init__(self, width, height, game):
         self.width = width
         self.height = height
+        self.game = game
         self.map = Map(width, height)
-        player_fighter = Fighter(hp=5, power=1)
+        player_fighter = Fighter(hp=5, power=1, death_function=player_death)
         self.player = Piece(self, self.width/2, self.height/2, '@', libtcod.white, "Hero", blocks_passage=True, fighter=player_fighter)
         self.pieces = [self.player]
 
