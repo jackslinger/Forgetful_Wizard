@@ -22,18 +22,54 @@ def handle_keys(board):
 		return "exit"  #exit game
 
 	if (game_state == "playing"):
-		if libtcod.console_is_key_pressed(libtcod.KEY_UP) or key.vk == libtcod.KEY_KP8:
-			board.move_or_attack(player,0,-1)
-			return "moved"
-		elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN) or key.vk == libtcod.KEY_KP2:
-			board.move_or_attack(player,0,1)
-			return "moved"
-		elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT) or key.vk == libtcod.KEY_KP4:
-			board.move_or_attack(player,-1,0)
-			return "moved"
-		elif libtcod.console_is_key_pressed(libtcod.KEY_RIGHT) or key.vk == libtcod.KEY_KP6:
-			board.move_or_attack(player,1,0)
-			return "moved"
+		if libtcod.console_is_key_pressed(libtcod.KEY_UP) or key.vk == libtcod.KEY_KP8 or key.c == ord('k'):
+			valid_move = board.move_or_attack(player,0,-1)
+			if valid_move:
+				return "moved"
+			else:
+				return "not_moved"
+		elif libtcod.console_is_key_pressed(libtcod.KEY_DOWN) or key.vk == libtcod.KEY_KP2 or key.c == ord('j'):
+			valid_move = board.move_or_attack(player,0,1)
+			if valid_move:
+				return "moved"
+			else:
+				return "not_moved"
+		elif libtcod.console_is_key_pressed(libtcod.KEY_LEFT) or key.vk == libtcod.KEY_KP4 or key.c == ord('h'):
+			valid_move = board.move_or_attack(player,-1,0)
+			if valid_move:
+				return "moved"
+			else:
+				return "not_moved"
+		elif libtcod.console_is_key_pressed(libtcod.KEY_RIGHT) or key.vk == libtcod.KEY_KP6 or key.c == ord('l'):
+			valid_move = board.move_or_attack(player,1,0)
+			if valid_move:
+				return "moved"
+			else:
+				return "not_moved"
+		elif key.c == ord('y'):
+			valid_move = board.move_or_attack(player,-1,-1)
+			if valid_move:
+				return "moved"
+			else:
+				return "not_moved"
+		elif key.c == ord('u'):
+			valid_move = board.move_or_attack(player,1,-1)
+			if valid_move:
+				return "moved"
+			else:
+				return "not_moved"
+		elif key.c == ord('b'):
+			valid_move = board.move_or_attack(player,-1,1)
+			if valid_move:
+				return "moved"
+			else:
+				return "not_moved"
+		elif key.c == ord('n'):
+			valid_move = board.move_or_attack(player,1,1)
+			if valid_move:
+				return "moved"
+			else:
+				return "not_moved"
 
 
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
@@ -52,7 +88,7 @@ while not libtcod.console_is_window_closed():
 	player_action = handle_keys(board)
 	if player_action == "exit":
 		break
-	elif player_action != None:
+	elif player_action == "moved":
 		for piece in board.pieces:
 			if piece.ai:
 				piece.ai.take_turn()

@@ -84,7 +84,6 @@ class BasicMonster:
     """The AI for a basic monster"""
     def take_turn(self):
         if self.owner.distance_to(self.owner.board.player) < 5:
-            print "The " + self.owner.name + " moves."
             self.owner.move_towards(self.owner.board.player)
 
 class Tile:
@@ -211,13 +210,17 @@ class Board(object):
                 if (blocking_piece.fighter and piece.fighter):
                     print "The " + piece.name + " attacks the " + blocking_piece.name + "!"
                     blocking_piece.fighter.takeDamage(piece.fighter.power)
+                    return True
                 else:
                     #Moving has failed, should not take up a turn
                     print "The " + piece.name + " bumps into the " + blocking_piece.name
+                    return False
             else:
                 #Moving into a wall or other obstruction should not take a turn
                 print "The " + piece.name + " bumps into the wall."
+                return False
         else:
             #Move to the destination
             piece.x = new_x
             piece.y = new_y
+            return True
