@@ -15,7 +15,7 @@ class Sprite(object):
 class Piece:
     #this is a generic object: the player, a monster, an item, the stairs...
     #it's always represented by a character on screen.
-    def __init__(self, x, y, char, color, name, blocks_passage, fighter):
+    def __init__(self, x, y, char, color, name, blocks_passage=False, fighter=None, ai=None):
         self.x = x
         self.y = y
         self.sprite = Sprite(char, color)
@@ -26,6 +26,10 @@ class Piece:
         if self.fighter:
             self.fighter.owner = self
 
+        self.ai = ai
+        if self.ai:
+            self.ai.owner = self
+
     def draw(self, console):
         self.sprite.draw(console, self.x, self.y)
         #Delegate the task of drawing to the sprite
@@ -34,24 +38,33 @@ class Piece:
         #erase the character that represents this object
         libtcod.console_put_char(console, self.x, self.y, ' ', libtcod.BKGND_NONE)
 
+def monster_death(monster):
+    print "The " + monster.name + " dies!"
+    monster.blocks_passage = False
+    monster.sprite = Sprite('%', libtcod.red)
+    monster.ai = None
+    monster.fighter = None
+    monster.name = monster.name + " corpse"
+
 class Fighter:
     #This class contains all the data and methods needed for a piece to fight.
-    def __init__(self, hp, power):
+    def __init__(self, hp, power, death_function=None):
         self.max_hp = hp
         self.hp = hp
         self.power = power
-        self.dead = False
-        self.owner = False
+        self.death_function = death_function
 
     def takeDamage(self, amount):
         if self.hp > amount:
             self.hp -= amount
         else:
-            self.hp = 0
-            self.dead = True
-            if self.owner:
-                self.owner.blocks_passage = False
-                self.owner.sprite = Sprite('%', libtcod.red)
+            if self.death_function:
+                self.death_function(self.owner)
+
+class BasicMonster:
+    """The AI for a basic monster"""
+    def take_turn(self):
+        print "The " + self.owner.name + " growls!"
 
 class Tile:
     """A Tile represents a part of the map, it can block light and or passage"""
@@ -131,10 +144,12 @@ class Board(object):
 
     def generate(self):
         self.map.generate()
-        orc_fighter = Fighter(hp=1, power=1)
-        self.pieces.append(Piece(5, 5, 'o', libtcod.green, "Orc", True, orc_fighter))
-        troll_fighter = Fighter(hp=2, power=1)
-        self.pieces.append(Piece(35, self.height/2, 'T', libtcod.green, "Troll", True, troll_fighter))
+        orc_fighter = Fighter(hp=1, power=1, death_function=monster_death)
+        orc_ai = BasicMonster()
+        self.pieces.append(Piece(5, 5, 'o', libtcod.green, "Orc", True, orc_fighter, orc_ai))
+        troll_fighter = Fighter(hp=2, power=1, death_function=monster_death)
+        troll_ai = BasicMonster()
+        self.pieces.append(Piece(35, self.height/2, 'T', libtcod.green, "Troll", True, troll_fighter, troll_ai))
 
 
     def move_or_attack(self, piece, dx, dy):
@@ -157,7 +172,7 @@ class Board(object):
                 blocking_piece.fighter.takeDamage(piece.fighter.power)
             else:
                 #Moving has failed, should not take up a turn
-                print "The " + piece.name + " bumbs into the " + blocking_piece.name
+                print "The " + piece.name + " bumps into the " + blocking_piece.name
         elif not (self.map.tiles[new_x][new_y].blocks_passage):
             #Move to the destination
             piece.x = new_x

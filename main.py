@@ -52,3 +52,7 @@ while not libtcod.console_is_window_closed():
 	player_action = handle_keys(board)
 	if player_action == "exit":
 		break
+	elif player_action != None:
+		for piece in board.pieces:
+			if piece.ai:
+				piece.ai.take_turn()
