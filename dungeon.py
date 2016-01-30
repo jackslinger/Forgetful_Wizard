@@ -1,4 +1,5 @@
 import libtcodpy as libtcod
+import math
 
 class Sprite(object):
     """A Sprite represents a colored char that can draw it's self at a given position"""
@@ -15,7 +16,9 @@ class Sprite(object):
 class Piece:
     #this is a generic object: the player, a monster, an item, the stairs...
     #it's always represented by a character on screen.
-    def __init__(self, x, y, char, color, name, blocks_passage=False, fighter=None, ai=None):
+    #it is placed on a particular board object
+    def __init__(self, board, x, y, char, color, name, blocks_passage=False, fighter=None, ai=None):
+        self.board = board
         self.x = x
         self.y = y
         self.sprite = Sprite(char, color)
@@ -37,6 +40,21 @@ class Piece:
     def clear(self, console):
         #erase the character that represents this object
         libtcod.console_put_char(console, self.x, self.y, ' ', libtcod.BKGND_NONE)
+
+    def distance_to(self, piece):
+        dx = piece.x - self.x
+        dy = piece.y - self.y
+        return math.sqrt(dx ** 2 + dy ** 2)
+
+    def move_towards(self, piece):
+        dx = piece.x - self.x
+        dy = piece.y - self.y
+        distance = math.sqrt(dx ** 2 + dy ** 2)
+
+        dx = int(round(dx / distance))
+        dy = int(round(dy / distance))
+        self.board.move_or_attack(self, dx, dy)
+
 
 def monster_death(monster):
     print "The " + monster.name + " dies!"
@@ -64,7 +82,9 @@ class Fighter:
 class BasicMonster:
     """The AI for a basic monster"""
     def take_turn(self):
-        print "The " + self.owner.name + " growls!"
+        if self.owner.distance_to(self.owner.board.player) < 5:
+            print "The " + self.owner.name + " moves."
+            self.owner.move_towards(self.owner.board.player)
 
 class Tile:
     """A Tile represents a part of the map, it can block light and or passage"""
@@ -133,7 +153,7 @@ class Board(object):
         self.height = height
         self.map = Map(width, height)
         player_fighter = Fighter(hp=5, power=1)
-        self.player = Piece(self.width/2, self.height/2, '@', libtcod.white, "Hero", blocks_passage=True, fighter=player_fighter)
+        self.player = Piece(self, self.width/2, self.height/2, '@', libtcod.white, "Hero", blocks_passage=True, fighter=player_fighter)
         self.pieces = [self.player]
 
     def draw(self, console):
@@ -146,11 +166,26 @@ class Board(object):
         self.map.generate()
         orc_fighter = Fighter(hp=1, power=1, death_function=monster_death)
         orc_ai = BasicMonster()
-        self.pieces.append(Piece(5, 5, 'o', libtcod.green, "Orc", True, orc_fighter, orc_ai))
+        self.pieces.append(Piece(self, 5, 5, 'o', libtcod.green, "Orc", True, orc_fighter, orc_ai))
         troll_fighter = Fighter(hp=2, power=1, death_function=monster_death)
         troll_ai = BasicMonster()
-        self.pieces.append(Piece(35, self.height/2, 'T', libtcod.green, "Troll", True, troll_fighter, troll_ai))
+        self.pieces.append(Piece(self, 35, self.height/2, 'T', libtcod.green, "Troll", True, troll_fighter, troll_ai))
 
+    def is_blocked(self, x, y):
+        #Is the tile at this location blocking
+        if self.map.tiles[x][y].blocks_passage:
+            return True
+
+        #Are any blocking pieces in this location
+        blocking_piece = None
+        for piece in self.pieces:
+            if piece.blocks_passage and piece.x == x and piece.y == y:
+                #Set the blocking_piece, and break out of the loop
+                blocking_piece = piece
+                return blocking_piece
+
+        #If it's not blocked by a tile or piece then it's not blocked
+        return False
 
     def move_or_attack(self, piece, dx, dy):
         #Get the co-ordinates of the destination
@@ -158,22 +193,23 @@ class Board(object):
         new_y = piece.y + dy
 
         #Check if the destination is blocked by a piece
-        blocking_piece = None
-        for other in self.pieces:
-            if other.blocks_passage and other.x == new_x and other.y == new_y:
-                #Set the blocking piece, if more than one the last one will be picked
-                blocking_piece = other
+        blocking_piece = self.is_blocked(new_x, new_y)
 
-        #If blocked by a piece
-        if (blocking_piece != None):
-            #Attack the piece if possible
-            if (blocking_piece.fighter and piece.fighter):
-                print "The " + piece.name + " attacks the " + blocking_piece.name + "!"
-                blocking_piece.fighter.takeDamage(piece.fighter.power)
+        #If blocked by something
+        if blocking_piece:
+            #If blocked by a piece
+            if isinstance(blocking_piece, Piece):
+                #Attack the piece if possible
+                if (blocking_piece.fighter and piece.fighter):
+                    print "The " + piece.name + " attacks the " + blocking_piece.name + "!"
+                    blocking_piece.fighter.takeDamage(piece.fighter.power)
+                else:
+                    #Moving has failed, should not take up a turn
+                    print "The " + piece.name + " bumps into the " + blocking_piece.name
             else:
-                #Moving has failed, should not take up a turn
-                print "The " + piece.name + " bumps into the " + blocking_piece.name
-        elif not (self.map.tiles[new_x][new_y].blocks_passage):
+                #Moving into a wall or other obstruction should not take a turn
+                print "The " + piece.name + " bumps into the wall."
+        else:
             #Move to the destination
             piece.x = new_x
             piece.y = new_y
