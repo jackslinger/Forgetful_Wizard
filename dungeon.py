@@ -63,6 +63,7 @@ def monster_death(monster):
     monster.ai = None
     monster.fighter = None
     monster.name = monster.name + " corpse"
+    monster.board.move_to_back(monster)
 
 class Fighter:
     #This class contains all the data and methods needed for a piece to fight.
@@ -157,8 +158,10 @@ class Board(object):
         self.pieces = [self.player]
 
     def draw(self, console):
-        #Draw the map, then draw the objects
+        #Draw the map
         self.map.draw(console)
+
+        #Draw the pieces
         for piece in self.pieces:
             piece.draw(console)
 
@@ -170,6 +173,11 @@ class Board(object):
         troll_fighter = Fighter(hp=2, power=1, death_function=monster_death)
         troll_ai = BasicMonster()
         self.pieces.append(Piece(self, 35, self.height/2, 'T', libtcod.green, "Troll", True, troll_fighter, troll_ai))
+
+    def move_to_back(self, piece):
+        #Move a piece to the start of the list so they are drawn first
+        self.pieces.remove(piece)
+        self.pieces.insert(0, piece)
 
     def is_blocked(self, x, y):
         #Is the tile at this location blocking
