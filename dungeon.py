@@ -168,7 +168,7 @@ class Board(object):
         self.game = game
         self.map = Map(width, height)
         player_fighter = Fighter(hp=5, power=1, death_function=player_death)
-        self.player = Piece(self, self.width/2, self.height/2, '@', libtcod.white, "Hero", blocks_passage=True, fighter=player_fighter)
+        self.player = Piece(self, self.width/2, (self.height/2)+4, '@', libtcod.white, "Hero", blocks_passage=True, fighter=player_fighter)
         self.pieces = [self.player]
 
     def draw(self, console):
@@ -186,7 +186,7 @@ class Board(object):
         self.pieces.append(Piece(self, 5, 5, 'o', libtcod.green, "Orc", True, orc_fighter, orc_ai))
         troll_fighter = Fighter(hp=2, power=1, death_function=monster_death)
         troll_ai = BasicMonster()
-        self.pieces.append(Piece(self, 35, self.height/2, 'T', libtcod.green, "Troll", True, troll_fighter, troll_ai))
+        self.pieces.append(Piece(self, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", True, troll_fighter, troll_ai))
 
     def move_to_back(self, piece):
         #Move a piece to the start of the list so they are drawn first
