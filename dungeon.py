@@ -1,10 +1,42 @@
 import libtcodpy as libtcod
 import math
+import textwrap
 
 class Game():
     """Stores the current game state. Maybe should be a singleton"""
-    def __init__(self):
+    def __init__(self, message_system):
         self.game_state = "playing"
+        self.message_system = message_system
+
+class Message:
+    """Stores and prints a message buffer of a set size"""
+    def __init__(self, buffer_max_size, width):
+        self.buffer_max_size = buffer_max_size
+        self.width = width
+        self.buffer = []
+
+    def draw(self, console):
+        self.clear(console)
+
+        libtcod.console_set_default_foreground(console, libtcod.white)
+        y = 0
+        for line in self.buffer:
+            libtcod.console_print_ex(console, 0, y, libtcod.BKGND_NONE, libtcod.LEFT, line)
+            y += 1
+
+    def clear(self, console):
+        libtcod.console_clear(console)
+
+    def add_message(self, message):
+        message_lines = textwrap.wrap(message, self.width)
+
+        for line in message_lines:
+            if len(self.buffer) == self.buffer_max_size:
+                #Delete the first item to make room
+                del self.buffer[0]
+
+            #Add the line to the message buffer
+            self.buffer.append(line)
 
 class Sprite(object):
     """A Sprite represents a colored char that can draw it's self at a given position"""
@@ -223,16 +255,19 @@ class Board(object):
             if isinstance(blocking_piece, Piece):
                 #Attack the piece if possible
                 if (blocking_piece.fighter and piece.fighter):
-                    print "The " + piece.name + " attacks the " + blocking_piece.name + "!"
+                    text = "The " + piece.name + " attacks the " + blocking_piece.name + "!"
+                    self.game.message_system.add_message(text)
                     blocking_piece.fighter.takeDamage(piece.fighter.power)
                     return True
                 else:
                     #Moving has failed, should not take up a turn
-                    print "The " + piece.name + " bumps into the " + blocking_piece.name
+                    tet = "The " + piece.name + " bumps into the " + blocking_piece.name
+                    self.game.message_system.add_message(text)
                     return False
             else:
                 #Moving into a wall or other obstruction should not take a turn
-                print "The " + piece.name + " bumps into the wall."
+                text = "The " + piece.name + " bumps into the wall."
+                self.game.message_system.add_message(text)
                 return False
         else:
             #Move to the destination
