@@ -86,32 +86,36 @@ def handle_keys(board):
 				return "moved"
 			else:
 				return "not_moved"
-		elif key.c == ord('y'):
+		elif key.c == ord('y') or key.vk == libtcod.KEY_KP7:
 			valid_move = board.move_or_attack(player,-1,-1)
 			if valid_move:
 				return "moved"
 			else:
 				return "not_moved"
-		elif key.c == ord('u'):
+		elif key.c == ord('u') or key.vk == libtcod.KEY_KP9:
 			valid_move = board.move_or_attack(player,1,-1)
 			if valid_move:
 				return "moved"
 			else:
 				return "not_moved"
-		elif key.c == ord('b'):
+		elif key.c == ord('b') or key.vk == libtcod.KEY_KP1:
 			valid_move = board.move_or_attack(player,-1,1)
 			if valid_move:
 				return "moved"
 			else:
 				return "not_moved"
-		elif key.c == ord('n'):
+		elif key.c == ord('n') or key.vk == libtcod.KEY_KP3:
 			valid_move = board.move_or_attack(player,1,1)
 			if valid_move:
 				return "moved"
 			else:
 				return "not_moved"
-		elif key.c == ord('.'):
+		elif key.c == ord('.') or key.vk == libtcod.KEY_KP5:
 			#Wait in one place
+			return "waiting"
+		elif key.c == ord('z'):
+			zap = Spell(board.player, zap_target, hurt, board)
+			zap.cast()
 			return "waiting"
 
 
