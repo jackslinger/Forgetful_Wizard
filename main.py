@@ -13,6 +13,11 @@ PANEL_Y = SCREEN_HEIGHT - PANEL_HEIGHT
 
 player_action = None
 
+class ServiceLocator(object):
+	"""Provides access to game services that are needed everywhere e.g. message_system"""
+	def __init__(self):
+		print "Put code here"
+
 def menu(header, options, width):
 	if len(options) > 26:
 		raise ValueError("Can't have a menu with more than 26 options.")
@@ -121,6 +126,7 @@ message_system = Message(PANEL_HEIGHT, SCREEN_WIDTH)
 message_system.add_message("Welcome to Forgetfull Wizard!")
 
 game = Game(message_system)
+
 board = Board(MAP_WIDTH, MAP_HEIGHT, game)
 board.generate()
 

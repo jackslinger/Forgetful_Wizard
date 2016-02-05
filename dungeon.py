@@ -54,8 +54,9 @@ class Piece:
     #this is a generic object: the player, a monster, an item, the stairs...
     #it's always represented by a character on screen.
     #it is placed on a particular board object
-    def __init__(self, board, x, y, char, color, name, blocks_passage=False, fighter=None, ai=None):
-        self.board = board
+    def __init__(self, game, x, y, char, color, name, blocks_passage=False, fighter=None, ai=None):
+        self.game = game
+        self.board = game.board
         self.x = x
         self.y = y
         self.sprite = Sprite(char, color)
@@ -198,9 +199,10 @@ class Board(object):
         self.width = width
         self.height = height
         self.game = game
+        self.game.board = self
         self.map = Map(width, height)
         player_fighter = Fighter(hp=5, power=1, death_function=player_death)
-        self.player = Piece(self, self.width/2, (self.height/2)+4, '@', libtcod.white, "Hero", blocks_passage=True, fighter=player_fighter)
+        self.player = Piece(self.game, self.width/2, (self.height/2)+4, '@', libtcod.white, "Hero", blocks_passage=True, fighter=player_fighter)
         self.pieces = [self.player]
 
     def draw(self, console):
@@ -215,10 +217,10 @@ class Board(object):
         self.map.generate()
         orc_fighter = Fighter(hp=1, power=1, death_function=monster_death)
         orc_ai = BasicMonster()
-        self.pieces.append(Piece(self, 5, 5, 'o', libtcod.green, "Orc", True, orc_fighter, orc_ai))
+        self.pieces.append(Piece(self.game, 5, 5, 'o', libtcod.green, "Orc", True, orc_fighter, orc_ai))
         troll_fighter = Fighter(hp=2, power=1, death_function=monster_death)
         troll_ai = BasicMonster()
-        self.pieces.append(Piece(self, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", True, troll_fighter, troll_ai))
+        self.pieces.append(Piece(self.game, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", True, troll_fighter, troll_ai))
 
     def move_to_back(self, piece):
         #Move a piece to the start of the list so they are drawn first
@@ -274,3 +276,18 @@ class Board(object):
             piece.x = new_x
             piece.y = new_y
             return True
+
+class Spell(object):
+    """represents a spell made up of a caster, target and effect"""
+    def __init__(self, caster, target, effect, game):
+        self.caster = caster
+        self.target = target
+        self.effect = effect
+        self.game = game
+
+    #def cast(self):
+
+
+def zap_target(caster, game):
+    x = caster.x
+    y = caster.y
