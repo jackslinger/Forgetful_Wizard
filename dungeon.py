@@ -94,7 +94,8 @@ class Piece:
 
 
 def monster_death(monster):
-    print "The " + monster.name + " dies!"
+    death_message = "The " + monster.name + " dies!"
+    monster.board.game.message_system.add_message(death_message)
     monster.blocks_passage = False
     monster.sprite = Sprite('%', libtcod.red)
     monster.ai = None
@@ -103,7 +104,8 @@ def monster_death(monster):
     monster.board.move_to_back(monster)
 
 def player_death(player):
-    print "The Hero dies! Game Over!"
+    death_message = "The Hero dies! Game Over!"
+    player.board.game.message_system.add_message(death_message)
     player.blocks_passage = False
     player.sprite = Sprite('@', libtcod.red)
     player.fighter = None
