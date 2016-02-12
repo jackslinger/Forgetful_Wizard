@@ -285,14 +285,19 @@ class Spell(object):
         self.effect_function = effect_function
         self.board = board
 
-    def cast(self):
-        target = self.target_function(self.caster, self.board)
+    def cast(self, **kwargs):
+        target = self.target_function(self.caster, kwargs)
         self.effect_function(target)
 
 
-def zap_target(caster, board):
+def zap_target(caster, kwargs):
+    board = caster.board
     x = caster.x
     y = caster.y
+
+    max_range = None
+    if 'max_range' in kwargs:
+        max_range = kwargs['max_range']
 
     closest_monster = caster
     min_distance = 0
@@ -302,6 +307,10 @@ def zap_target(caster, board):
             if distance < min_distance or min_distance == 0:
                 min_distance = distance
                 closest_monster = piece
+
+    if max_range:
+        if min_distance > max_range:
+            return caster
 
     return closest_monster
 

@@ -115,7 +115,7 @@ def handle_keys(board):
 			return "waiting"
 		elif key.c == ord('z'):
 			zap = Spell(board.player, zap_target, hurt, board)
-			zap.cast()
+			zap.cast(max_range=5)
 			return "waiting"
 
 
