@@ -1,5 +1,6 @@
 import libtcodpy as libtcod
 from dungeon import *
+import spells
 
 SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 50
@@ -114,7 +115,7 @@ def handle_keys(board):
 			#Wait in one place
 			return "waiting"
 		elif key.c == ord('z'):
-			zap = Spell(board.player, zap_target, hurt, board)
+			zap = spells.Spell(board.player, spells.zap_target, spells.hurt, board)
 			zap.cast(max_range=5)
 			return "waiting"
 
