@@ -296,4 +296,10 @@ class Board(object):
             #Move to the destination
             piece.x = new_x
             piece.y = new_y
-            return True
+
+            #If there is ice then slide, should probably take multiple turns
+            if self.map.tiles[new_x][new_y].status and self.map.tiles[new_x][new_y].status.frozen:
+                #Try to move again
+                self.move_or_attack(piece, dx, dy)
+            else:
+                return True
