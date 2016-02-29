@@ -54,13 +54,14 @@ class Piece:
     #this is a generic object: the player, a monster, an item, the stairs...
     #it's always represented by a character on screen.
     #it is placed on a particular board object
-    def __init__(self, board, x, y, char, color, name, blocks_passage=False, fighter=None, ai=None, status=None):
+    def __init__(self, board, x, y, char, color, name, blocks_passage=False, blocks_light=False, fighter=None, ai=None, status=None):
         self.board = board
         self.x = x
         self.y = y
         self.sprite = Sprite(char, color)
         self.name = name
         self.blocks_passage = blocks_passage
+        self.blocks_light = blocks_light
 
         self.fighter = fighter
         if self.fighter:
@@ -150,23 +151,23 @@ class StatusAffectedMonster:
             if self.owner.distance_to(self.owner.board.player) < 5:
                 self.owner.move_towards(self.owner.board.player)
 
-class Tile:
-    """A Tile represents a part of the map, it can block light and or passage"""
-    def __init__(self, char, color, blocks_passage, blocks_light):
-        self.sprite = Sprite(char, color)
-        self.blocks_light = blocks_light
-        self.blocks_passage = blocks_passage
-
-    def draw(self, console, x, y):
-        #Delegate the task of drawing to the sprite
-        self.sprite.draw(console, x, y)
+# class Tile:
+#     """A Tile represents a part of the map, it can block light and or passage"""
+#     def __init__(self, char, color, blocks_passage, blocks_light):
+#         self.sprite = Sprite(char, color)
+#         self.blocks_light = blocks_light
+#         self.blocks_passage = blocks_passage
+#
+#     def draw(self, console, x, y):
+#         #Delegate the task of drawing to the sprite
+#         self.sprite.draw(console, x, y)
 
 class Map:
     """The Map represents the floor and walls of the dungeon."""
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.tiles = [[Tile(' ', libtcod.white, True, True)
+        self.tiles = [[Piece(self, x, y, ' ', libtcod.white, "", False, False)
             for y in range(self.height)]
                 for x in range(self.width)]
 
@@ -174,7 +175,7 @@ class Map:
         #The Map draws all of the tiles.
         for y in range(self.height):
             for x in range(self.width):
-                self.tiles[x][y].draw(console, x, y)
+                self.tiles[x][y].draw(console)
 
     def carve_room(self, start_x, start_y, width, height):
         end_x = start_x + width - 1
@@ -182,9 +183,9 @@ class Map:
         for y in range(start_y, end_y + 1):
             for x in range(start_x, end_x + 1):
                 if x == start_x or y == start_y or x == end_x or y == end_y:
-                    self.tiles[x][y] = Tile('#', libtcod.white, True, True)
+                    self.tiles[x][y] = Piece(self, x, y, '#', libtcod.white, "wall", True, True)
                 else:
-                    self.tiles[x][y] = Tile('.', libtcod.white, False, False)
+                    self.tiles[x][y] = Piece(self, x, y, '.', libtcod.white, "floor", False, False)
 
     def carve_corridor(self, start_x, start_y, end_x, end_y):
         if end_x < start_x:
@@ -198,7 +199,7 @@ class Map:
 
         for y in range(start_y, end_y + 1):
             for x in range(start_x, end_x + 1):
-                self.tiles[x][y] = Tile(',', libtcod.white, False, False)
+                self.tiles[x][y] = Piece(self, x, y, ',', libtcod.white, "coridoor", False, False)
 
     def generate(self):
         self.carve_room(38, 23, 5, 5)
@@ -218,7 +219,7 @@ class Board(object):
         self.game = game
         self.map = Map(width, height)
         player_fighter = Fighter(hp=5, power=1, death_function=player_death)
-        self.player = Piece(self, self.width/2, (self.height/2)+4, '@', libtcod.white, "Hero", blocks_passage=True, fighter=player_fighter)
+        self.player = Piece(self, self.width/2, (self.height/2)+4, '@', libtcod.white, "Hero", blocks_passage=True, blocks_light=False, fighter=player_fighter)
         self.pieces = [self.player]
 
     def draw(self, console):
@@ -234,10 +235,10 @@ class Board(object):
         orc_fighter = Fighter(hp=1, power=1, death_function=monster_death)
         orc_ai = StatusAffectedMonster()
         orc_status = Status()
-        self.pieces.append(Piece(self, 5, 5, 'o', libtcod.green, "Orc", True, orc_fighter, orc_ai, orc_status))
+        self.pieces.append(Piece(self, 5, 5, 'o', libtcod.green, "Orc", blocks_passage=True, blocks_light=False, fighter=orc_fighter, ai=orc_ai, status=orc_status))
         troll_fighter = Fighter(hp=2, power=1, death_function=monster_death)
         troll_ai = BasicMonster()
-        self.pieces.append(Piece(self, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", True, troll_fighter, troll_ai))
+        self.pieces.append(Piece(self, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", blocks_passage=True, blocks_light=False, fighter=troll_fighter, ai=troll_ai))
 
     def move_to_back(self, piece):
         #Move a piece to the start of the list so they are drawn first
