@@ -1,3 +1,4 @@
+import libtcodpy as libtcod
 import dungeon
 
 class Spell(object):
@@ -44,3 +45,9 @@ def hurt(target):
     print "Hurting the " + target.name
     if target.fighter:
         target.fighter.takeDamage(1)
+
+def freeze(target):
+    if target.fighter and target.status and not target.status.frozen:
+        target.status.frozen = True
+        target.name = "Frozen " + target.name
+        target.sprite.color = libtcod.blue

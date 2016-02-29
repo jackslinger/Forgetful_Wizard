@@ -115,7 +115,7 @@ def handle_keys(board):
 			#Wait in one place
 			return "waiting"
 		elif key.c == ord('z'):
-			zap = spells.Spell(board.player, spells.zap_target, spells.hurt, board)
+			zap = spells.Spell(board.player, spells.zap_target, spells.freeze, board)
 			zap.cast(max_range=5)
 			return "waiting"
 

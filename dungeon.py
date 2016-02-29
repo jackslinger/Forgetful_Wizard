@@ -54,7 +54,7 @@ class Piece:
     #this is a generic object: the player, a monster, an item, the stairs...
     #it's always represented by a character on screen.
     #it is placed on a particular board object
-    def __init__(self, board, x, y, char, color, name, blocks_passage=False, fighter=None, ai=None):
+    def __init__(self, board, x, y, char, color, name, blocks_passage=False, fighter=None, ai=None, status=None):
         self.board = board
         self.x = x
         self.y = y
@@ -69,6 +69,10 @@ class Piece:
         self.ai = ai
         if self.ai:
             self.ai.owner = self
+
+        self.status = status
+        if self.status:
+            self.status.owner = self
 
     def draw(self, console):
         self.sprite.draw(console, self.x, self.y)
@@ -128,11 +132,23 @@ class Fighter:
             if self.death_function:
                 self.death_function(self.owner)
 
+class Status:
+    #This class contains status flags such as on_fire or frozen
+    def __init__(self):
+        self.frozen = False
+
 class BasicMonster:
     """The AI for a basic monster"""
     def take_turn(self):
         if self.owner.distance_to(self.owner.board.player) < 5:
             self.owner.move_towards(self.owner.board.player)
+
+class StatusAffectedMonster:
+    """AI code that takes status effects into account"""
+    def take_turn(self):
+        if self.owner.status and not self.owner.status.frozen:
+            if self.owner.distance_to(self.owner.board.player) < 5:
+                self.owner.move_towards(self.owner.board.player)
 
 class Tile:
     """A Tile represents a part of the map, it can block light and or passage"""
@@ -216,8 +232,9 @@ class Board(object):
     def generate(self):
         self.map.generate()
         orc_fighter = Fighter(hp=1, power=1, death_function=monster_death)
-        orc_ai = BasicMonster()
-        self.pieces.append(Piece(self, 5, 5, 'o', libtcod.green, "Orc", True, orc_fighter, orc_ai))
+        orc_ai = StatusAffectedMonster()
+        orc_status = Status()
+        self.pieces.append(Piece(self, 5, 5, 'o', libtcod.green, "Orc", True, orc_fighter, orc_ai, orc_status))
         troll_fighter = Fighter(hp=2, power=1, death_function=monster_death)
         troll_ai = BasicMonster()
         self.pieces.append(Piece(self, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", True, troll_fighter, troll_ai))
