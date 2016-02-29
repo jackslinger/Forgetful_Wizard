@@ -151,23 +151,12 @@ class StatusAffectedMonster:
             if self.owner.distance_to(self.owner.board.player) < 5:
                 self.owner.move_towards(self.owner.board.player)
 
-# class Tile:
-#     """A Tile represents a part of the map, it can block light and or passage"""
-#     def __init__(self, char, color, blocks_passage, blocks_light):
-#         self.sprite = Sprite(char, color)
-#         self.blocks_light = blocks_light
-#         self.blocks_passage = blocks_passage
-#
-#     def draw(self, console, x, y):
-#         #Delegate the task of drawing to the sprite
-#         self.sprite.draw(console, x, y)
-
 class Map:
     """The Map represents the floor and walls of the dungeon."""
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.tiles = [[Piece(self, x, y, ' ', libtcod.white, "", False, False)
+        self.tiles = [[Piece(self, x, y, ' ', libtcod.white, "", blocks_passage=False, blocks_light=False)
             for y in range(self.height)]
                 for x in range(self.width)]
 
@@ -183,9 +172,9 @@ class Map:
         for y in range(start_y, end_y + 1):
             for x in range(start_x, end_x + 1):
                 if x == start_x or y == start_y or x == end_x or y == end_y:
-                    self.tiles[x][y] = Piece(self, x, y, '#', libtcod.white, "wall", True, True)
+                    self.tiles[x][y] = Piece(self, x, y, '#', libtcod.white, "wall", blocks_passage=True, blocks_light=True, status=Status())
                 else:
-                    self.tiles[x][y] = Piece(self, x, y, '.', libtcod.white, "floor", False, False)
+                    self.tiles[x][y] = Piece(self, x, y, '.', libtcod.white, "floor", blocks_passage=False, blocks_light=False, status=Status())
 
     def carve_corridor(self, start_x, start_y, end_x, end_y):
         if end_x < start_x:
@@ -199,7 +188,7 @@ class Map:
 
         for y in range(start_y, end_y + 1):
             for x in range(start_x, end_x + 1):
-                self.tiles[x][y] = Piece(self, x, y, ',', libtcod.white, "coridoor", False, False)
+                self.tiles[x][y] = Piece(self, x, y, '.', libtcod.white, "floor", False, False)
 
     def generate(self):
         self.carve_room(38, 23, 5, 5)
@@ -244,6 +233,20 @@ class Board(object):
         #Move a piece to the start of the list so they are drawn first
         self.pieces.remove(piece)
         self.pieces.insert(0, piece)
+
+    def pieces_at(self, x, y):
+        found_pieces = []
+
+        #Add the map tile at the given location
+        found_pieces.append(self.map.tiles[x][y])
+
+        #Add any other pieces at the given location
+        for piece in self.pieces:
+            if piece.x == x and piece.y == y:
+                found_pieces.append(piece)
+
+        #Return all the pieces found
+        return found_pieces
 
     def is_blocked(self, x, y):
         #Is the tile at this location blocking

@@ -1,8 +1,9 @@
 import libtcodpy as libtcod
 import dungeon
+import random
 
 class Spell(object):
-    """represents a spell made up of a caster, target and effect"""
+    """represents a spell made up of a caster, target or targets and effect"""
     def __init__(self, caster, target_function, effect_function, board):
         self.caster = caster
         self.target_function = target_function
@@ -10,9 +11,9 @@ class Spell(object):
         self.board = board
 
     def cast(self, **kwargs):
-        target = self.target_function(self.caster, kwargs)
-        self.effect_function(target)
-
+        targets = self.target_function(self.caster, kwargs)
+        for target in targets:
+            self.effect_function(target)
 
 def zap_target(caster, kwargs):
     board = caster.board
@@ -34,12 +35,43 @@ def zap_target(caster, kwargs):
 
     if max_range:
         if min_distance > max_range:
-            return caster
+            return [caster]
 
-    return closest_monster
+    return [closest_monster]
+
+def random_adjacent_target(caster, kwargs):
+    board = caster.board
+
+    targets = []
+    for x in range(caster.x - 1, caster.x + 2):
+        for y in range(caster.y - 1, caster.y + 2):
+            if not (caster.x == x and caster.y == y):
+                #Get all the pieces at a location
+                found_pieces = board.pieces_at(x, y)
+                for piece in found_pieces:
+                    targets.append(piece)
+
+    #Shuffle the list of posible targets and select the first one
+    random.shuffle(targets)
+    return [targets[0]]
+
+def burst_target(caster, kwargs):
+    board = caster.board
+
+    targets = []
+    targets = []
+    for x in range(caster.x - 1, caster.x + 2):
+        for y in range(caster.y - 1, caster.y + 2):
+            if not (caster.x == x and caster.y == y):
+                #Get all the pieces at a location
+                found_pieces = board.pieces_at(x, y)
+                for piece in found_pieces:
+                    targets.append(piece)
+
+    return targets
 
 def self_target(caster, kwargs):
-    return caster
+    return [caster]
 
 def hurt(target):
     print "Hurting the " + target.name
@@ -47,7 +79,7 @@ def hurt(target):
         target.fighter.takeDamage(1)
 
 def freeze(target):
-    if target.fighter and target.status and not target.status.frozen:
+    if target.status and not target.status.frozen:
         target.status.frozen = True
         target.name = "Frozen " + target.name
         target.sprite.color = libtcod.blue
