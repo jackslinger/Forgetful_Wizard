@@ -118,6 +118,13 @@ def player_death(player):
     player.board.move_to_back(player)
     player.board.game.game_state = "game_over"
 
+def wall_destruction(piece):
+    piece.blocks_passage = False
+    piece.blocks_light = False
+    piece.sprite = Sprite('.', libtcod.white)
+    piece.fighter = None
+    piece.ai = None
+
 class Fighter:
     #This class contains all the data and methods needed for a piece to fight.
     def __init__(self, hp, power, death_function=None):

@@ -115,9 +115,12 @@ def handle_keys(board):
 			#Wait in one place
 			return "waiting"
 		elif key.c == ord('z'):
-			zap = spells.Spell(board.player, spells.burst_target, spells.freeze, board)
+			zap = spells.Spell(board.player, spells.burst_target, spells.freeze)
 			zap.cast(max_range=5)
 			return "waiting"
+		elif key.c == ord('x'):
+			spell = spells.Spell(board.player, spells.random_adjacent_target, spells.growth)
+			spell.cast()
 
 
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)

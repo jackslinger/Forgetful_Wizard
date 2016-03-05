@@ -4,11 +4,10 @@ import random
 
 class Spell(object):
     """represents a spell made up of a caster, target or targets and effect"""
-    def __init__(self, caster, target_function, effect_function, board):
+    def __init__(self, caster, target_function, effect_function):
         self.caster = caster
         self.target_function = target_function
         self.effect_function = effect_function
-        self.board = board
 
     def cast(self, **kwargs):
         targets = self.target_function(self.caster, kwargs)
@@ -83,3 +82,11 @@ def freeze(target):
         target.status.frozen = True
         target.name = "Frozen " + target.name
         target.sprite.color = libtcod.blue
+
+def growth(target):
+    if not target.fighter and not target.ai:
+        target.name = "Stunted Tree"
+        target.sprite = dungeon.Sprite('#', libtcod.green)
+        target.blocks_passage = True
+        target.blocks_light = True
+        target.fighter = dungeon.Fighter(hp=1, power=0, death_function=dungeon.wall_destruction)
