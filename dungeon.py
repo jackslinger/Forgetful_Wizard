@@ -148,8 +148,18 @@ class Status:
 class BasicMonster:
     """The AI for a basic monster"""
     def take_turn(self):
-        if self.owner.distance_to(self.owner.board.player) < 5:
-            self.owner.move_towards(self.owner.board.player)
+        player = self.owner.board.player
+        dx = player.x - self.owner.x
+        dy = player.y - self.owner.y
+        distance = math.sqrt(dx ** 2 + dy ** 2)
+
+        x = self.owner.x + int(round(dx / distance))
+        y = self.owner.y + int(round(dy / distance))
+
+        if distance < 5:
+            return MoveAction(self.owner, x, y)
+        else:
+            return WaitAction(self.owner)
 
 class StatusAffectedMonster:
     """AI code that takes status effects into account"""
@@ -206,6 +216,37 @@ class Map:
         self.carve_corridor(32, 15, 35, 15)
         self.carve_corridor(32, 25, 38, 25)
 
+class MoveAction(object):
+    """The Move Action encodes the movement of a piece on the board
+    including collision detection and offering attack as an alternative
+    when bumping into monsters."""
+    def __init__(self, piece, x, y):
+        self.piece = piece
+        self.x = x
+        self.y = y
+
+    def perform(self):
+        #Check if the destination is blocked by a piece
+        blocking_piece = self.piece.board.is_blocked(self.x, self.y)
+
+        #If blocked by something
+        if blocking_piece:
+            return False
+        else:
+            #Move to the destination
+            self.piece.x = self.x
+            self.piece.y = self.y
+
+            return True
+
+class WaitAction(object):
+    """The Wait Action encodes a piece standing still"""
+    def __init__(self, piece):
+        self.piece = piece
+
+    def perform(self):
+        return True
+
 class Board(object):
     """The Board represents one whole floor of the dungeon with a map, and objects.
     It also contains the logic for moving around and fighting."""
@@ -229,7 +270,7 @@ class Board(object):
     def generate(self):
         self.map.generate()
         orc_fighter = Fighter(hp=1, power=1, death_function=monster_death)
-        orc_ai = StatusAffectedMonster()
+        orc_ai = BasicMonster()
         orc_status = Status()
         self.pieces.append(Piece(self, 5, 5, 'o', libtcod.green, "Orc", blocks_passage=True, blocks_light=False, fighter=orc_fighter, ai=orc_ai, status=orc_status))
         troll_fighter = Fighter(hp=2, power=1, death_function=monster_death)

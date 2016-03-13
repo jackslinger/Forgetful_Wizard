@@ -152,4 +152,5 @@ while not libtcod.console_is_window_closed():
 	elif player_action == "moved" or player_action == "waiting":
 		for piece in board.pieces:
 			if piece.ai:
-				piece.ai.take_turn()
+				action = piece.ai.take_turn()
+				action.perform()
