@@ -332,7 +332,7 @@ class Board(object):
                     return True
                 else:
                     #Moving has failed, should not take up a turn
-                    tet = "The " + piece.name + " bumps into the " + blocking_piece.name
+                    text = "The " + piece.name + " bumps into the " + blocking_piece.name
                     self.game.message_system.add_message(text)
                     return False
             else:
