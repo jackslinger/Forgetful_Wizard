@@ -1,12 +1,35 @@
 import libtcodpy as libtcod
 import math
 import textwrap
+from itertools import cycle
 
 class Game():
-    """Stores the current game state. Maybe should be a singleton"""
-    def __init__(self, message_system):
+    """Represents a game with a board and a message system. Is called from the UI
+       to process the next turn."""
+    def __init__(self, message_system, board):
         self.game_state = "playing"
+        self.actors = []
+        self.index = 0
         self.message_system = message_system
+        self.board = board
+        self.board.game = self
+
+    def add_actor(self, actor):
+        self.actors.append(actor)
+
+    def remove_actor(self, actor):
+        self.actors.remove(actor)
+
+    def process_turn(self):
+        if len(self.actors) > 0:
+            actor = self.actors[self.index]
+
+            if actor.ai:
+                action = actor.ai.take_turn()
+                if action:
+                    action.perform()
+                    self.index += 1
+                    self.index %= len(self.actors)
 
 class Message:
     """Stores and prints a message buffer of a set size"""
@@ -105,6 +128,7 @@ def monster_death(monster):
     monster.sprite = Sprite('%', libtcod.red)
     monster.ai = None
     monster.fighter = None
+    monster.board.game.remove_actor(monster)
     monster.name = monster.name + " corpse"
     monster.board.move_to_back(monster)
 
@@ -144,6 +168,24 @@ class Status:
     #This class contains status flags such as on_fire or frozen
     def __init__(self):
         self.frozen = False
+
+class PlayerAI:
+    """The AI representing the player, stores a buffer with the players"""
+    def __init__(self):
+        self.action = None
+
+    def take_turn(self):
+        if self.action:
+            print 'Action: ', type(self.action)
+        else:
+            print 'Nothing'
+
+        temp = self.action
+        self.action = None
+        return temp
+
+    def set_action(self, action):
+        self.action = action
 
 class BasicMonster:
     """The AI for a basic monster"""
@@ -250,14 +292,10 @@ class WaitAction(object):
 class Board(object):
     """The Board represents one whole floor of the dungeon with a map, and objects.
     It also contains the logic for moving around and fighting."""
-    def __init__(self, width, height, game):
+    def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.game = game
         self.map = Map(width, height)
-        player_fighter = Fighter(hp=5, power=1, death_function=player_death)
-        self.player = Piece(self, self.width/2, (self.height/2)+4, '@', libtcod.white, "Hero", blocks_passage=True, blocks_light=False, fighter=player_fighter)
-        self.pieces = [self.player]
 
     def draw(self, console):
         #Draw the map
@@ -269,13 +307,23 @@ class Board(object):
 
     def generate(self):
         self.map.generate()
+        player_fighter = Fighter(hp=5, power=1, death_function=player_death)
+        player_ai = PlayerAI()
+        self.player = Piece(self, self.width/2, (self.height/2)+4, '@', libtcod.white, "Hero", blocks_passage=True, blocks_light=False, fighter=player_fighter,
+                            ai=player_ai, status=Status())
+        self.pieces = [self.player]
+        self.game.add_actor(self.player)
         orc_fighter = Fighter(hp=1, power=1, death_function=monster_death)
         orc_ai = BasicMonster()
         orc_status = Status()
-        self.pieces.append(Piece(self, 5, 5, 'o', libtcod.green, "Orc", blocks_passage=True, blocks_light=False, fighter=orc_fighter, ai=orc_ai, status=orc_status))
+        orc = Piece(self, 5, 5, 'o', libtcod.green, "Orc", blocks_passage=True, blocks_light=False, fighter=orc_fighter, ai=orc_ai, status=orc_status)
+        self.pieces.append(orc)
+        self.game.add_actor(orc)
         troll_fighter = Fighter(hp=2, power=1, death_function=monster_death)
         troll_ai = BasicMonster()
-        self.pieces.append(Piece(self, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", blocks_passage=True, blocks_light=False, fighter=troll_fighter, ai=troll_ai))
+        troll = Piece(self, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", blocks_passage=True, blocks_light=False, fighter=troll_fighter, ai=troll_ai)
+        self.pieces.append(troll)
+        self.game.add_actor(troll)
 
     def move_to_back(self, piece):
         #Move a piece to the start of the list so they are drawn first
