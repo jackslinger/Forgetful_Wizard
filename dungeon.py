@@ -175,11 +175,6 @@ class PlayerAI:
         self.action = None
 
     def take_turn(self):
-        if self.action:
-            print 'Action: ', type(self.action)
-        else:
-            print 'Nothing'
-
         temp = self.action
         self.action = None
         return temp
