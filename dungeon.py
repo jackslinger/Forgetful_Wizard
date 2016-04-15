@@ -26,11 +26,21 @@ class Game():
 
             if actor.ai:
                 action = actor.ai.take_turn()
-                if action:
-                    print 'foo'
-                    action.perform()
-                    self.index += 1
-                    self.index %= len(self.actors)
+
+                if not action:
+                    return
+
+                while(True):
+                    result, alternative = action.perform()
+                    if not result:
+                        return
+                    if not alternative:
+                        break
+                    action = alternative
+
+                self.index += 1
+                self.index %= len(self.actors)
+
 
 class Message:
     """Stores and prints a message buffer of a set size"""
@@ -158,7 +168,7 @@ class Fighter:
         self.power = power
         self.death_function = death_function
 
-    def takeDamage(self, amount):
+    def take_damage(self, amount):
         if self.hp > amount:
             self.hp -= amount
         else:
@@ -269,13 +279,16 @@ class MoveAction(object):
 
         #If blocked by something
         if blocking_piece:
-            return False
+            #If blocked by a piece
+            if isinstance(blocking_piece, Piece) and self.piece.fighter and blocking_piece.fighter:
+                return True, AttackAction(self.piece, blocking_piece)
+            return False, None
         else:
             #Move to the destination
             self.piece.x = self.x
             self.piece.y = self.y
 
-            return True
+            return True, None
 
 class WaitAction(object):
     """The Wait Action encodes a piece standing still"""
@@ -283,7 +296,17 @@ class WaitAction(object):
         self.piece = piece
 
     def perform(self):
-        return True
+        return True, None
+
+class AttackAction(object):
+    """The Attack Action encodes one piece on the board attacking anouther"""
+    def __init__(self, attacker, defender):
+        self.attacker = attacker
+        self.defender = defender
+
+    def perform(self):
+        self.defender.fighter.take_damage(self.attacker.fighter.power)
+        return True, None
 
 class Board(object):
     """The Board represents one whole floor of the dungeon with a map, and objects.
@@ -372,7 +395,7 @@ class Board(object):
                 if (blocking_piece.fighter and piece.fighter):
                     text = "The " + piece.name + " attacks the " + blocking_piece.name + "!"
                     self.game.message_system.add_message(text)
-                    blocking_piece.fighter.takeDamage(piece.fighter.power)
+                    blocking_piece.fighter.take_damage(piece.fighter.power)
                     return True
                 else:
                     #Moving has failed, should not take up a turn
