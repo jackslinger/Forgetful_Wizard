@@ -52,10 +52,11 @@ def handle_keys(board):
 	game_state = board.game.game_state
 	player = board.player
 
+	# key = libtcod.console_check_for_keypress()
+
 	key = libtcod.Key()
 	mouse = libtcod.Mouse()
-	libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS,key,mouse)
-	#key = libtcod.console_check_for_keypress()
+	libtcod.sys_check_for_event(libtcod.EVENT_KEY_PRESS, key, mouse)
 
 	if key.vk == libtcod.KEY_ENTER and key.lalt:
 		#Alt+Enter: toggle fullscreen
@@ -63,44 +64,35 @@ def handle_keys(board):
 	elif key.vk == libtcod.KEY_ESCAPE:
 		return "exit"  #exit game
 
+	if not key.pressed:
+		return
+
 	if (game_state == "playing"):
 		if key.vk == libtcod.KEY_UP or key.vk == libtcod.KEY_KP8 or key.c == ord('k'):
 			player.ai.set_action(MoveAction(player, player.x, player.y - 1))
-			return "moved"
 		elif key.vk == libtcod.KEY_DOWN or key.vk == libtcod.KEY_KP2 or key.c == ord('j'):
 			player.ai.set_action(MoveAction(player, player.x, player.y + 1))
-			return "moved"
 		elif key.vk == libtcod.KEY_LEFT or key.vk == libtcod.KEY_KP4 or key.c == ord('h'):
 			player.ai.set_action(MoveAction(player, player.x - 1, player.y))
-			return "moved"
 		elif key.vk == libtcod.KEY_RIGHT or key.vk == libtcod.KEY_KP6 or key.c == ord('l'):
 			player.ai.set_action(MoveAction(player, player.x + 1, player.y))
-			return "moved"
 		elif key.c == ord('y') or key.vk == libtcod.KEY_KP7:
 			player.ai.set_action(MoveAction(player, player.x - 1, player.y - 1))
-			return "moved"
 		elif key.c == ord('u') or key.vk == libtcod.KEY_KP9:
 			player.ai.set_action(MoveAction(player, player.x + 1, player.y - 1))
-			return "moved"
 		elif key.c == ord('b') or key.vk == libtcod.KEY_KP1:
 			player.ai.set_action(MoveAction(player, player.x - 1, player.y + 1))
-			return "moved"
 		elif key.c == ord('n') or key.vk == libtcod.KEY_KP3:
 			player.ai.set_action(MoveAction(player, player.x + 1, player.y + 1))
-			return "moved"
 		elif key.c == ord('.') or key.vk == libtcod.KEY_KP5:
 			#Wait in one place
 			player.ai.set_action(WaitAction(player))
-			return "waiting"
 		elif key.c == ord('z'):
 			zap = spells.Spell(board.player, spells.burst_target, spells.freeze)
 			zap.cast(max_range=5)
-			return "waiting"
 		elif key.c == ord('x'):
 			spell = spells.Spell(board.player, spells.random_adjacent_target, spells.growth)
 			spell.cast()
-
-		return "moved"
 
 
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
@@ -133,5 +125,5 @@ while not libtcod.console_is_window_closed():
 	player_action = handle_keys(board)
 	if player_action == "exit":
 		break
-	elif player_action == "moved" or player_action == "waiting":
-		game.process_turn()
+
+	game.process_turn()

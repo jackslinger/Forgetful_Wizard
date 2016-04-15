@@ -27,6 +27,7 @@ class Game():
             if actor.ai:
                 action = actor.ai.take_turn()
                 if action:
+                    print 'foo'
                     action.perform()
                     self.index += 1
                     self.index %= len(self.actors)
