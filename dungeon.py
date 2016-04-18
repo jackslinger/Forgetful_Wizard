@@ -1,14 +1,14 @@
 import libtcodpy as libtcod
 from itertools import cycle
-from game import *
-from piece import *
+from game_engine import *
+import game_piece
 
 class Map:
     """The Map represents the floor and walls of the dungeon."""
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.tiles = [[Piece(self, x, y, ' ', libtcod.white, "", blocks_passage=False, blocks_light=False)
+        self.tiles = [[game_piece.Piece(self, x, y, ' ', libtcod.white, "", blocks_passage=False, blocks_light=False)
             for y in range(self.height)]
                 for x in range(self.width)]
 
@@ -24,9 +24,9 @@ class Map:
         for y in range(start_y, end_y + 1):
             for x in range(start_x, end_x + 1):
                 if x == start_x or y == start_y or x == end_x or y == end_y:
-                    self.tiles[x][y] = Piece(self, x, y, '#', libtcod.white, "wall", blocks_passage=True, blocks_light=True, status=Status())
+                    self.tiles[x][y] = game_piece.Piece(self, x, y, '#', libtcod.white, "wall", blocks_passage=True, blocks_light=True, status=game_piece.Status())
                 else:
-                    self.tiles[x][y] = Piece(self, x, y, '.', libtcod.white, "floor", blocks_passage=False, blocks_light=False, status=Status())
+                    self.tiles[x][y] = game_piece.Piece(self, x, y, '.', libtcod.white, "floor", blocks_passage=False, blocks_light=False, status=game_piece.Status())
 
     def carve_corridor(self, start_x, start_y, end_x, end_y):
         if end_x < start_x:
@@ -40,7 +40,7 @@ class Map:
 
         for y in range(start_y, end_y + 1):
             for x in range(start_x, end_x + 1):
-                self.tiles[x][y] = Piece(self, x, y, '.', libtcod.white, "floor", False, False)
+                self.tiles[x][y] = game_piece.Piece(self, x, y, '.', libtcod.white, "floor", False, False)
 
     def generate(self):
         self.carve_room(38, 23, 5, 5)
@@ -73,21 +73,21 @@ class Board(object):
 
     def generate(self):
         self.map.generate()
-        player_fighter = Fighter(hp=5, power=1, death_function=player_death)
-        player_ai = PlayerAI()
-        self.player = Piece(self, self.width/2, (self.height/2)+4, '@', libtcod.white, "Hero", blocks_passage=True, blocks_light=False, fighter=player_fighter,
-                            ai=player_ai, status=Status())
+        player_fighter = game_piece.Fighter(hp=5, power=1, death_function=game_piece.player_death)
+        player_ai = game_piece.PlayerAI()
+        self.player = game_piece.Piece(self, self.width/2, (self.height/2)+4, '@', libtcod.white, "Hero", blocks_passage=True, blocks_light=False, fighter=player_fighter,
+                            ai=player_ai, status=game_piece.Status())
         self.pieces = [self.player]
         self.game.add_actor(self.player)
-        orc_fighter = Fighter(hp=1, power=1, death_function=monster_death)
-        orc_ai = BasicMonster()
-        orc_status = Status()
-        orc = Piece(self, 5, 5, 'o', libtcod.green, "Orc", blocks_passage=True, blocks_light=False, fighter=orc_fighter, ai=orc_ai, status=orc_status)
+        orc_fighter = game_piece.Fighter(hp=1, power=1, death_function=game_piece.monster_death)
+        orc_ai = game_piece.BasicMonster()
+        orc_status = game_piece.Status()
+        orc = game_piece.Piece(self, 5, 5, 'o', libtcod.green, "Orc", blocks_passage=True, blocks_light=False, fighter=orc_fighter, ai=orc_ai, status=orc_status)
         self.pieces.append(orc)
         self.game.add_actor(orc)
-        troll_fighter = Fighter(hp=2, power=1, death_function=monster_death)
-        troll_ai = BasicMonster()
-        troll = Piece(self, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", blocks_passage=True, blocks_light=False, fighter=troll_fighter, ai=troll_ai)
+        troll_fighter = game_piece.Fighter(hp=2, power=1, death_function=game_piece.monster_death)
+        troll_ai = game_piece.BasicMonster()
+        troll = game_piece.Piece(self, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", blocks_passage=True, blocks_light=False, fighter=troll_fighter, ai=troll_ai)
         self.pieces.append(troll)
         self.game.add_actor(troll)
 
@@ -125,43 +125,3 @@ class Board(object):
 
         #If it's not blocked by a tile or piece then it's not blocked
         return False
-
-    def move_or_attack(self, piece, dx, dy):
-        #Get the co-ordinates of the destination
-        new_x = piece.x + dx
-        new_y = piece.y + dy
-
-        #Check if the destination is blocked by a piece
-        blocking_piece = self.is_blocked(new_x, new_y)
-
-        #If blocked by something
-        if blocking_piece:
-            #If blocked by a piece
-            if isinstance(blocking_piece, Piece):
-                #Attack the piece if possible
-                if (blocking_piece.fighter and piece.fighter):
-                    text = "The " + piece.name + " attacks the " + blocking_piece.name + "!"
-                    self.game.message_system.add_message(text)
-                    blocking_piece.fighter.take_damage(piece.fighter.power)
-                    return True
-                else:
-                    #Moving has failed, should not take up a turn
-                    text = "The " + piece.name + " bumps into the " + blocking_piece.name
-                    self.game.message_system.add_message(text)
-                    return False
-            else:
-                #Moving into a wall or other obstruction should not take a turn
-                text = "The " + piece.name + " bumps into the wall."
-                self.game.message_system.add_message(text)
-                return False
-        else:
-            #Move to the destination
-            piece.x = new_x
-            piece.y = new_y
-
-            #If there is ice then slide, should probably take multiple turns
-            if self.map.tiles[new_x][new_y].status and self.map.tiles[new_x][new_y].status.frozen:
-                #Try to move again
-                self.move_or_attack(piece, dx, dy)
-            else:
-                return True

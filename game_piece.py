@@ -1,6 +1,7 @@
 import libtcodpy as libtcod
 import math
-import game
+import game_engine
+
 class Sprite(object):
     """A Sprite represents a colored char that can draw it's self at a given position"""
     def __init__(self, char, color):
@@ -134,9 +135,9 @@ class BasicMonster:
         y = self.owner.y + int(round(dy / distance))
 
         if distance < 5:
-            return game.MoveAction(self.owner, x, y)
+            return game_engine.MoveAction(self.owner, x, y)
         else:
-            return game.WaitAction(self.owner)
+            return game_engine.WaitAction(self.owner)
 
 class StatusAffectedMonster:
     """AI code that takes status effects into account"""

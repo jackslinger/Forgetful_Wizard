@@ -1,5 +1,5 @@
 import libtcodpy as libtcod
-import dungeon
+import game_piece
 import random
 
 class Spell(object):
@@ -86,7 +86,7 @@ def freeze(target):
 def growth(target):
     if not target.fighter and not target.ai:
         target.name = "Stunted Tree"
-        target.sprite = dungeon.Sprite('#', libtcod.green)
+        target.sprite = game_piece.Sprite('#', libtcod.green)
         target.blocks_passage = True
         target.blocks_light = True
-        target.fighter = dungeon.Fighter(hp=1, power=0, death_function=dungeon.wall_destruction)
+        target.fighter = game_piece.Fighter(hp=1, power=0, death_function=game_piece.wall_destruction)

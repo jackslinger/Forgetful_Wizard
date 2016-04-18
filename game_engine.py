@@ -1,5 +1,5 @@
 import libtcodpy as libtcod
-import piece
+import game_piece
 import textwrap
 
 class Game():
@@ -71,7 +71,7 @@ class Message:
             self.buffer.append(line)
 
 class MoveAction(object):
-    """The Move Action encodes the movement of a piece on the board
+    """The Move Action encodes the movement of a game_piece on the board
     including collision detection and offering attack as an alternative
     when bumping into monsters."""
     def __init__(self, piece, x, y):
@@ -86,7 +86,7 @@ class MoveAction(object):
         #If blocked by something
         if blocking_piece:
             #If blocked by a piece
-            if isinstance(blocking_piece, piece.Piece) and self.piece.fighter and blocking_piece.fighter:
+            if isinstance(blocking_piece, game_piece.Piece) and self.piece.fighter and blocking_piece.fighter:
                 return True, AttackAction(self.piece, blocking_piece)
             return False, None
         else:
