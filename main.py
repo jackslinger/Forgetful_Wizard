@@ -88,10 +88,11 @@ def handle_keys(board):
 			#Wait in one place
 			player.ai.set_action(WaitAction(player))
 		elif key.c == ord('z'):
-			zap = spells.Spell(board.player, spells.burst_target, spells.freeze)
-			zap.cast(max_range=5)
+			zap = spells.Spell(board.player, spells.burst_target, spells.freeze, max_range=5)
+			zap.cast()
 		elif key.c == ord('x'):
-			spell = spells.Spell(board.player, spells.random_adjacent_target, spells.growth)
+			spell = spells.random_spell(board.player)
+			print 'Spell, target: ' + spell.target_function.__name__ + ' Effect: ' + spell.effect_function.__name__
 			spell.cast()
 
 
