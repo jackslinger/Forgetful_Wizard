@@ -113,7 +113,9 @@ class Board(object):
     def is_blocked(self, x, y):
         #Is the tile at this location blocking
         if self.map.tiles[x][y].blocks_passage:
-            return True
+            #Set the blocking_piece, and break out of the loop
+            blocking_piece = self.map.tiles[x][y]
+            return blocking_piece
 
         #Are any blocking pieces in this location
         blocking_piece = None
