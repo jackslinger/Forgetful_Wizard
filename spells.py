@@ -16,12 +16,17 @@ class Spell(object):
             self.effect_function(target, self.kwargs)
 
 def random_spell(caster):
-    target_functions = [zap_target, random_adjacent_target, burst_target, self_target]
-    effect_functions = [hurt, freeze, growth]
-
-    target = random.choice(target_functions)
-    effect = random.choice(effect_functions)
+    target = random_target()
+    effect = random_effect()
     return Spell(caster, target, effect)
+
+def random_target():
+    target_functions = [zap_target, random_adjacent_target, burst_target, self_target]
+    return random.choice(target_functions)
+
+def random_effect():
+    effect_functions = [hurt, freeze, growth]
+    return random.choice(effect_functions)
 
 def zap_target(caster, kwargs):
     board = caster.board

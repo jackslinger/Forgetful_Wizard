@@ -7,10 +7,10 @@ SCREEN_HEIGHT = 50
 LIMIT_FPS = 20
 
 MAP_WIDTH = 80
-MAP_HEIGHT = 43
+MAP_HEIGHT = 42
 
 PANEL_HEIGHT = 7
-PANEL_Y = SCREEN_HEIGHT - PANEL_HEIGHT
+PANEL_Y = SCREEN_HEIGHT - PANEL_HEIGHT - 1
 
 player_action = None
 
@@ -48,7 +48,7 @@ def menu(header, options, width):
 	y = SCREEN_HEIGHT/2 - height/2
 	libtcod.console_blit(window, 0, 0, width, height, 0, x, y, 1.0, 0.7)
 
-def handle_keys(board):
+def handle_keys(board, current_spell):
 	game_state = board.game.game_state
 	player = board.player
 
@@ -91,9 +91,9 @@ def handle_keys(board):
 			zap = spells.Spell(board.player, spells.burst_target, spells.freeze, max_range=5)
 			zap.cast()
 		elif key.c == ord('x'):
-			spell = spells.random_spell(board.player)
-			print 'Spell, target: ' + spell.target_function.__name__ + ' Effect: ' + spell.effect_function.__name__
-			spell.cast()
+			current_spell.cast()
+			current_spell.target_function = spells.random_target()
+			current_spell.effect_function = spells.random_effect()
 
 
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
@@ -115,15 +115,23 @@ game = Game(message_system, board)
 
 board.generate()
 
+status_panel = libtcod.console_new(SCREEN_WIDTH, 1)
+libtcod.console_set_default_background(status_panel, libtcod.black)
+
+current_spell = spells.random_spell(board.player)
+status_bar = StatusBar(board.player, current_spell)
+
 while not libtcod.console_is_window_closed():
 	board.draw(con)
 	message_system.draw(panel)
+	status_bar.draw(status_panel)
 
 	libtcod.console_blit(con, 0, 0, MAP_WIDTH, MAP_HEIGHT, 0, 0, 0)
 	libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
+	libtcod.console_blit(status_panel, 0, 0, SCREEN_WIDTH, 1, 0, 0, PANEL_Y-1)
 	libtcod.console_flush()
 
-	player_action = handle_keys(board)
+	player_action = handle_keys(board, current_spell)
 	if player_action == "exit":
 		break
 

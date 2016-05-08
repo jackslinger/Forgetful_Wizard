@@ -70,6 +70,20 @@ class Message:
             #Add the line to the message buffer
             self.buffer.append(line)
 
+class StatusBar:
+    """Prints status information on a bar on the screen"""
+    def __init__(self, player, current_spell):
+        self.player = player
+        self.current_spell = current_spell
+
+    def draw(self, console):
+        libtcod.console_clear(console)
+        libtcod.console_set_default_foreground(console, libtcod.white)
+        libtcod.console_print_ex(console, 3, 0, libtcod.BKGND_NONE, libtcod.LEFT, 'HP: ' + str(self.player.fighter.hp))
+        if self.current_spell:
+            libtcod.console_print_ex(console, 10, 0, libtcod.BKGND_NONE, libtcod.LEFT, self.current_spell.target_function.__name__)
+            libtcod.console_print_ex(console, 30, 0, libtcod.BKGND_NONE, libtcod.LEFT, self.current_spell.effect_function.__name__)
+
 class MoveAction(object):
     """The Move Action encodes the movement of a game_piece on the board
     including collision detection and offering attack as an alternative
