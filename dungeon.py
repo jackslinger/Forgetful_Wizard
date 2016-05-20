@@ -2,6 +2,16 @@ import libtcodpy as libtcod
 from itertools import cycle
 from game_engine import *
 import game_piece
+import random
+
+class Room:
+    """The representation of a room for use in dungeon genration"""
+    def __init__(self, node, x, y, width, height):
+        self.node = node
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
 
 class Map:
     """The Map represents the floor and walls of the dungeon."""
@@ -28,6 +38,39 @@ class Map:
                 else:
                     self.tiles[x][y] = game_piece.Piece(self, x, y, '.', libtcod.white, "floor", blocks_passage=False, blocks_light=False, status=game_piece.Status())
 
+
+    def carve_corridor_rooms(self, left_room, right_room, horizontal):
+        if horizontal:
+            left_max_x = left_room.x + left_room.width
+            right_max_x = right_room.x + right_room.width
+            min_x = max(left_room.x, right_room.x)
+            max_x = min(left_max_x, right_max_x)
+            x = random.randint(min_x + 1, max_x - 2)
+            for y in range(left_room.y + left_room.height - 1, left_room.y - 1, -1):
+                if not self.tiles[x][y].blocks_passage:
+                    start_y = y
+                    break
+            for y in range(right_room.y, right_room.y + right_room.height - 1):
+                if not self.tiles[x][y].blocks_passage:
+                    end_y = y
+                    break
+            self.carve_corridor(x, start_y, x, end_y)
+        else:
+            left_max_y = left_room.y + left_room.height
+            right_max_y = right_room.y + right_room.height
+            min_y = max(left_room.y, right_room.y)
+            max_y = min(left_max_y, right_max_y)
+            y = random.randint(min_y + 1, max_y - 2)
+            for x in range(left_room.x + left_room.width - 1, left_room.x - 1, -1):
+                if not self.tiles[x][y].blocks_passage:
+                    start_x = x
+                    break
+            for x in range(right_room.x, right_room.x + right_room.width - 1):
+                if not self.tiles[x][y].blocks_passage:
+                    end_x = x
+                    break
+            self.carve_corridor(start_x, y, end_x, y)
+
     def carve_corridor(self, start_x, start_y, end_x, end_y):
         if end_x < start_x:
             temp = start_x
@@ -40,19 +83,28 @@ class Map:
 
         for y in range(start_y, end_y + 1):
             for x in range(start_x, end_x + 1):
-                self.tiles[x][y] = game_piece.Piece(self, x, y, '.', libtcod.white, "floor", False, False)
+                self.tiles[x][y] = game_piece.Piece(self, x, y, '*', libtcod.white, "floor", blocks_passage=False, blocks_light=False, status=game_piece.Status())
 
     def generate(self):
-        self.carve_room(38, 23, 5, 5)
-        self.carve_room(3, 4, 30, 26)
-        self.carve_room(35, 10, 20, 10)
+        bsp_root = libtcod.bsp_new_with_size(0, 0, self.width, self.height)
+        libtcod.bsp_split_recursive(bsp_root, None, 3, minHSize=11, minVSize=11, maxHRatio=1.0, maxVRatio=1.0)
 
-        #Corridoors
-        self.carve_corridor(32, 15, 35, 15)
-        self.carve_corridor(32, 25, 38, 25)
+        self.process_node(bsp_root)
 
-
-
+    def process_node(self, node):
+        if libtcod.bsp_is_leaf(node):
+            #self.carve_room(node.x, node.y, node.w, node.h)
+            width = random.randint(7, node.w)
+            height = random.randint(7, node.h)
+            x = random.randint(node.x, node.x+node.w-width)
+            y = random.randint(node.y, node.y+node.h-height)
+            self.carve_room(x, y, width, height)
+            return Room(node, x, y, width, height)
+        else:
+            left = self.process_node(libtcod.bsp_left(node))
+            right = self.process_node(libtcod.bsp_right(node))
+            if left and right:
+                self.carve_corridor_rooms(left, right, node.horizontal)
 
 
 class Board(object):
