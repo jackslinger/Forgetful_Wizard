@@ -3,15 +3,21 @@ from itertools import cycle
 from game_engine import *
 import game_piece
 import random
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import minimum_spanning_tree
 
 class Room:
     """The representation of a room for use in dungeon genration"""
-    def __init__(self, node, x, y, width, height):
-        self.node = node
+    def __init__(self, x, y, width, height):
         self.x = x
         self.y = y
         self.width = width
         self.height = height
+        self.center_x = x + width / 2
+        self.center_y = y + height / 2
+
+    def distance_to(self, other):
+        return abs(self.center_x - other.center_x) + abs(self.center_y - other.center_y)
 
 class Map:
     """The Map represents the floor and walls of the dungeon."""
@@ -81,41 +87,45 @@ class Map:
             start_y = end_y
             end_y = temp
 
+        for x in range(start_x, end_x + 1):
+            self.tiles[x][end_y] = game_piece.Piece(self, x, end_y, '.', libtcod.white, "floor", blocks_passage=False, blocks_light=False, status=game_piece.Status())
+
         for y in range(start_y, end_y + 1):
-            for x in range(start_x, end_x + 1):
-                self.tiles[x][y] = game_piece.Piece(self, x, y, '*', libtcod.white, "floor", blocks_passage=False, blocks_light=False, status=game_piece.Status())
+            self.tiles[end_x][y] = game_piece.Piece(self, end_x, y, '.', libtcod.white, "floor", blocks_passage=False, blocks_light=False, status=game_piece.Status())
 
     def generate(self):
         bsp_root = libtcod.bsp_new_with_size(0, 0, self.width, self.height)
-        libtcod.bsp_split_recursive(bsp_root, None, 3, minHSize=11, minVSize=11, maxHRatio=1.0, maxVRatio=1.0)
+        libtcod.bsp_split_recursive(bsp_root, None, 5, minHSize=11, minVSize=11, maxHRatio=1.0, maxVRatio=1.0)
 
-        self.process_node(bsp_root)
+        rooms = []
+        self.process_node(bsp_root, rooms)
 
-    def process_node(self, node):
+        i = 0
+        for room in rooms:
+            self.carve_room(room.x, room.y, room.width, room.height)
+            self.tiles[room.center_x][room.center_y] = game_piece.Piece(self, room.center_x, room.center_y, str(i), libtcod.white, "floor", blocks_passage=False, blocks_light=False, status=game_piece.Status())
+            i += 1
+
+        full_graph = csr_matrix([[room1.distance_to(room2) for room1 in rooms] for room2 in rooms])
+        minimum_spanning_graph = minimum_spanning_tree(full_graph)
+        indexes = minimum_spanning_graph.nonzero()
+
+        for i in range(len(indexes[0])):
+            room1 = rooms[indexes[0][i]]
+            room2 = rooms[indexes[1][i]]
+            self.carve_corridor(room1.center_x, room1.center_y, room2.center_x, room1.center_y)
+            self.carve_corridor(room2.center_x, room1.center_y, room2.center_x, room2.center_y)
+
+    def process_node(self, node, rooms):
         if libtcod.bsp_is_leaf(node):
             width = random.randint(7, node.w)
             height = random.randint(7, node.h)
             x = random.randint(node.x, node.x+node.w-width)
             y = random.randint(node.y, node.y+node.h-height)
-            self.carve_room(x, y, width, height)
-            return Room(node, x, y, width, height)
+            rooms.append(Room(x, y, width, height))
         else:
-            left = self.process_node(libtcod.bsp_left(node))
-            right = self.process_node(libtcod.bsp_right(node))
-            if left and right:
-                self.carve_corridor_rooms(left, right, node.horizontal)
-                min_x = min(left.x, right.x)
-                min_y = min(left.y, right.y)
-                max_x = max(left.x + left.width - 1, right.x + right.width - 1)
-                max_y = max(left.y + left.height - 1, right.y + right.height - 1)
-                width = max_x - min_x
-                height = max_y - min_y
-                #self.carve_room(min_x_room.x, min_y_room.y, width, height)
-                self.tiles[min_x][min_y] = game_piece.Piece(self, min_x, min_y, '!', libtcod.white, "wall", blocks_passage=True, blocks_light=True, status=game_piece.Status())
-                self.tiles[min_x][max_y] = game_piece.Piece(self, min_x, max_y, '!', libtcod.white, "wall", blocks_passage=True, blocks_light=True, status=game_piece.Status())
-                self.tiles[max_x][min_y] = game_piece.Piece(self, max_x, min_y, '!', libtcod.white, "wall", blocks_passage=True, blocks_light=True, status=game_piece.Status())
-                self.tiles[max_x][max_y] = game_piece.Piece(self, max_x, max_y, '!', libtcod.white, "wall", blocks_passage=True, blocks_light=True, status=game_piece.Status())
-                return Room(node, min_x, min_y, width, height)
+            self.process_node(libtcod.bsp_left(node), rooms)
+            self.process_node(libtcod.bsp_right(node), rooms)
 
 class Board(object):
     """The Board represents one whole floor of the dungeon with a map, and objects.
