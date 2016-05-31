@@ -93,7 +93,6 @@ class Map:
 
     def process_node(self, node):
         if libtcod.bsp_is_leaf(node):
-            #self.carve_room(node.x, node.y, node.w, node.h)
             width = random.randint(7, node.w)
             height = random.randint(7, node.h)
             x = random.randint(node.x, node.x+node.w-width)
@@ -105,7 +104,18 @@ class Map:
             right = self.process_node(libtcod.bsp_right(node))
             if left and right:
                 self.carve_corridor_rooms(left, right, node.horizontal)
-
+                min_x = min(left.x, right.x)
+                min_y = min(left.y, right.y)
+                max_x = max(left.x + left.width - 1, right.x + right.width - 1)
+                max_y = max(left.y + left.height - 1, right.y + right.height - 1)
+                width = max_x - min_x
+                height = max_y - min_y
+                #self.carve_room(min_x_room.x, min_y_room.y, width, height)
+                self.tiles[min_x][min_y] = game_piece.Piece(self, min_x, min_y, '!', libtcod.white, "wall", blocks_passage=True, blocks_light=True, status=game_piece.Status())
+                self.tiles[min_x][max_y] = game_piece.Piece(self, min_x, max_y, '!', libtcod.white, "wall", blocks_passage=True, blocks_light=True, status=game_piece.Status())
+                self.tiles[max_x][min_y] = game_piece.Piece(self, max_x, min_y, '!', libtcod.white, "wall", blocks_passage=True, blocks_light=True, status=game_piece.Status())
+                self.tiles[max_x][max_y] = game_piece.Piece(self, max_x, max_y, '!', libtcod.white, "wall", blocks_passage=True, blocks_light=True, status=game_piece.Status())
+                return Room(node, min_x, min_y, width, height)
 
 class Board(object):
     """The Board represents one whole floor of the dungeon with a map, and objects.
