@@ -10,7 +10,6 @@ class Sprite(object):
         self.color = color
 
     def draw(self, console, x, y):
-        #set the color and then draw the character that represents this object at its position
         libtcod.console_set_default_foreground(console, self.color)
         libtcod.console_put_char(console, x, y, self.char, libtcod.BKGND_NONE)
 
@@ -50,16 +49,6 @@ class Piece:
         dx = piece.x - self.x
         dy = piece.y - self.y
         return math.sqrt(dx ** 2 + dy ** 2)
-
-    def move_towards(self, piece):
-        dx = piece.x - self.x
-        dy = piece.y - self.y
-        distance = math.sqrt(dx ** 2 + dy ** 2)
-
-        dx = int(round(dx / distance))
-        dy = int(round(dy / distance))
-        self.board.move_or_attack(self, dx, dy)
-
 
 def monster_death(monster):
     death_message = "The " + monster.name + " dies!"
