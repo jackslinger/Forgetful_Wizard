@@ -162,7 +162,7 @@ class Map:
             self.process_node(libtcod.bsp_right(node), rooms)
 
 class Board(object):
-    """The Board represents one whole floor of the dungeon with a map, and objects.
+    """The Board represents one whole floor of the dungeon with a map, and a list of moving peices.
     It also contains the logic for moving around and fighting."""
     def __init__(self, width, height):
         self.width = width
@@ -170,10 +170,8 @@ class Board(object):
         self.map = Map(width, height)
 
     def draw(self, console):
-        #Draw the map
         self.map.draw(console)
 
-        #Draw the pieces
         for piece in self.pieces:
             piece.draw(console)
 
@@ -204,16 +202,12 @@ class Board(object):
 
     def pieces_at(self, x, y):
         found_pieces = []
-
-        #Add the map tile at the given location
         found_pieces.append(self.map.tiles[x][y])
 
-        #Add any other pieces at the given location
         for piece in self.pieces:
             if piece.x == x and piece.y == y:
                 found_pieces.append(piece)
 
-        #Return all the pieces found
         return found_pieces
 
     def is_blocked(self, x, y):

@@ -15,9 +15,10 @@ class Sprite(object):
         libtcod.console_put_char(console, x, y, self.char, libtcod.BKGND_NONE)
 
 class Piece:
-    #this is a generic object: the player, a monster, an item, the stairs...
-    #it's always represented by a character on screen.
-    #it is placed on a particular board object
+    """this is a generic object: the player, a monster, an item, the stairs...
+    it's represented by a character on screen
+    it's placed on a particular board object
+    it can optionaly have fighter, ai and status components"""
     def __init__(self, board, x, y, char, color, name, blocks_passage=False, blocks_light=False, fighter=None, ai=None, status=None):
         self.board = board
         self.x = x
@@ -41,10 +42,8 @@ class Piece:
 
     def draw(self, console):
         self.sprite.draw(console, self.x, self.y)
-        #Delegate the task of drawing to the sprite
 
     def clear(self, console):
-        #erase the character that represents this object
         libtcod.console_put_char(console, self.x, self.y, ' ', libtcod.BKGND_NONE)
 
     def distance_to(self, piece):
@@ -91,7 +90,7 @@ def wall_destruction(piece):
     piece.ai = None
 
 class Fighter:
-    #This class contains all the data and methods needed for a piece to fight.
+    """This class contains all the data and methods needed for a piece to fight."""
     def __init__(self, hp, power, death_function=None):
         self.max_hp = hp
         self.hp = hp
@@ -106,7 +105,7 @@ class Fighter:
                 self.death_function(self.owner)
 
 class Status:
-    #This class contains status flags such as on_fire or frozen
+    """This class contains status flags such as on_fire or frozen."""
     def __init__(self):
         self.frozen = False
 
