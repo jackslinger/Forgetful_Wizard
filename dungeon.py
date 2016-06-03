@@ -168,6 +168,7 @@ class Board(object):
         self.width = width
         self.height = height
         self.map = Map(width, height)
+        self.factory = game_piece.PieceFactory(self)
 
     def draw(self, console):
         self.map.draw(console)
@@ -177,23 +178,20 @@ class Board(object):
 
     def generate(self):
         self.map.generate()
-        player_fighter = game_piece.Fighter(hp=5, power=1, death_function=game_piece.player_death)
-        player_ai = game_piece.PlayerAI()
-        self.player = game_piece.Piece(self, self.width/2, (self.height/2)+4, '@', libtcod.white, "Hero", blocks_passage=True, blocks_light=False, fighter=player_fighter,
-                            ai=player_ai, status=game_piece.Status())
+
+        self.player = self.factory.createPiece('player', self.width/2, self.height/2)
         self.pieces = [self.player]
         self.game.add_actor(self.player)
-        orc_fighter = game_piece.Fighter(hp=1, power=1, death_function=game_piece.monster_death)
-        orc_ai = game_piece.BasicMonster()
-        orc_status = game_piece.Status()
-        orc = game_piece.Piece(self, 5, 5, 'o', libtcod.green, "Orc", blocks_passage=True, blocks_light=False, fighter=orc_fighter, ai=orc_ai, status=orc_status)
+
+        orc = self.factory.createPiece('orc', 5, 5)
         self.pieces.append(orc)
         self.game.add_actor(orc)
-        troll_fighter = game_piece.Fighter(hp=2, power=1, death_function=game_piece.monster_death)
-        troll_ai = game_piece.BasicMonster()
-        troll = game_piece.Piece(self, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", blocks_passage=True, blocks_light=False, fighter=troll_fighter, ai=troll_ai)
-        self.pieces.append(troll)
-        self.game.add_actor(troll)
+
+        # troll_fighter = game_piece.Fighter(hp=2, power=1, death_function=game_piece.monster_death)
+        # troll_ai = game_piece.BasicMonster()
+        # troll = game_piece.Piece(self, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", blocks_passage=True, blocks_light=False, fighter=troll_fighter, ai=troll_ai)
+        # self.pieces.append(troll)
+        # self.game.add_actor(troll)
 
     def move_to_back(self, piece):
         #Move a piece to the start of the list so they are drawn first

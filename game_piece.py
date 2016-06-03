@@ -50,6 +50,28 @@ class Piece:
         dy = piece.y - self.y
         return math.sqrt(dx ** 2 + dy ** 2)
 
+class PieceFactory:
+    """The PieceFactory takes a string describing the piece it should make, wall, orc etc and then
+    returns a Piece with those paramaters."""
+    def __init__(self, board):
+        self.board = board
+
+    def createPiece(self, identifier, x=0, y=0):
+        if identifier == 'wall':
+            return Piece(self.board, x, y, '#', libtcod.white, 'Wall', blocks_passage=True, blocks_light=True, status=Status())
+        elif identifier == 'floor':
+            return Piece(self.board, x, y, '.', libtcod.white, 'Floor', blocks_passage=False, blocks_light=False, status=Status())
+        elif identifier == 'empty':
+            return Piece(self.board, x, y, ' ', libtcod.white, '', blocks_passage=False, blocks_light=False)
+        elif identifier == 'player':
+            fighter = Fighter(hp=5, power=1, death_function=player_death)
+            return Piece(self.board, x, y, '@', libtcod.white, "Hero", blocks_passage=True, blocks_light=False, fighter=fighter, ai=PlayerAI(), status=Status())
+        elif identifier == 'orc':
+            fighter = Fighter(hp=1, power=1, death_function=monster_death)
+            return Piece(self.board, x, y, 'o', libtcod.green, "Orc", blocks_passage=True, blocks_light=False, fighter=fighter, ai=BasicMonster(), status=Status())
+        else:
+            return None
+
 def monster_death(monster):
     death_message = "The " + monster.name + " dies!"
     monster.board.game.message_system.add_message(death_message)
