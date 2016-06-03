@@ -21,12 +21,11 @@ class Room:
 
 class Map:
     """The Map represents the floor and walls of the dungeon."""
-    def __init__(self, width, height):
+    def __init__(self, board, width, height):
         self.width = width
         self.height = height
-        self.tiles = [[game_piece.Piece(self, x, y, ' ', libtcod.white, "", blocks_passage=False, blocks_light=False, status=game_piece.Status())
-            for y in range(self.height)]
-                for x in range(self.width)]
+        self.board = board
+        self.tiles = [[self.board.factory.createPiece('empty', x, y) for y in range(self.height)] for x in range(self.width)]
 
     def draw(self, console):
         #The Map draws all of the tiles.
@@ -40,15 +39,9 @@ class Map:
         for y in range(start_y, end_y + 1):
             for x in range(start_x, end_x + 1):
                 if x == start_x or y == start_y or x == end_x or y == end_y:
-                    self.tiles[x][y].sprite.char = '#'
-                    self.tiles[x][y].name = "wall"
-                    self.tiles[x][y].blocks_passage = True
-                    self.tiles[x][y].blocks_light = True
+                    self.tiles[x][y] = self.board.factory.createPiece('wall', x, y)
                 else:
-                    self.tiles[x][y].sprite.char = '.'
-                    self.tiles[x][y].name = "floor"
-                    self.tiles[x][y].blocks_passage = False
-                    self.tiles[x][y].blocks_light = False
+                    self.tiles[x][y] = self.board.factory.createPiece('floor', x, y)
 
     def carve_corridor_rooms(self, left_room, right_room, horizontal):
         if horizontal:
@@ -93,42 +86,18 @@ class Map:
             end_y = temp
 
         for x in range(start_x, end_x + 1):
-            self.tiles[x][end_y].sprite.char = '.'
-            self.tiles[x][end_y].name = 'floor'
-            self.tiles[x][end_y].status = game_piece.Status()
-            self.tiles[x][end_y].blocks_light = False
-            self.tiles[x][end_y].blocks_passage = False
+            self.tiles[x][end_y] = self.board.factory.createPiece('floor', x, end_y)
             if self.tiles[x][end_y + 1].sprite.char == ' ':
-                self.tiles[x][end_y + 1].sprite.char = '#'
-                self.tiles[x][end_y + 1].name = 'wall'
-                self.tiles[x][end_y + 1].blocks_light = True
-                self.tiles[x][end_y + 1].blocks_passage = True
-                self.tiles[x][end_y + 1].status = game_piece.Status()
+                self.tiles[x][end_y + 1] = self.board.factory.createPiece('wall', x, end_y + 1)
             if self.tiles[x][end_y - 1].sprite.char == ' ':
-                self.tiles[x][end_y - 1].sprite.char = '#'
-                self.tiles[x][end_y - 1].name = 'wall'
-                self.tiles[x][end_y - 1].blocks_light = True
-                self.tiles[x][end_y - 1].blocks_passage = True
-                self.tiles[x][end_y - 1].status = game_piece.Status()
+                self.tiles[x][end_y - 1] = self.board.factory.createPiece('wall', x, end_y - 1)
 
         for y in range(start_y, end_y + 1):
-            self.tiles[end_x][y].sprite.char = '.'
-            self.tiles[end_x][y].name = 'floor'
-            self.tiles[end_x][y].status = game_piece.Status()
-            self.tiles[end_x][y].blocks_light = False
-            self.tiles[end_x][y].blocks_passage = False
+            self.tiles[end_x][y] = self.board.factory.createPiece('floor', end_x, y)
             if self.tiles[end_x + 1][y].sprite.char == ' ':
-                self.tiles[end_x + 1][y].sprite.char = '#'
-                self.tiles[end_x + 1][y].name = 'wall'
-                self.tiles[end_x + 1][y].blocks_light = True
-                self.tiles[end_x + 1][y].blocks_passage = True
-                self.tiles[end_x + 1][y].status = game_piece.Status()
+                self.tiles[end_x + 1][y] = self.board.factory.createPiece('wall', end_x + 1, y)
             if self.tiles[end_x - 1][y].sprite.char == ' ':
-                self.tiles[end_x - 1][y].sprite.char = '#'
-                self.tiles[end_x - 1][y].name = 'wall'
-                self.tiles[end_x - 1][y].blocks_light = True
-                self.tiles[end_x - 1][y].blocks_passage = True
-                self.tiles[end_x - 1][y].status = game_piece.Status()
+                self.tiles[end_x - 1][y] = self.board.factory.createPiece('wall', end_x - 1, y)
 
     def generate(self):
         bsp_root = libtcod.bsp_new_with_size(0, 0, self.width, self.height)
@@ -167,8 +136,8 @@ class Board(object):
     def __init__(self, width, height):
         self.width = width
         self.height = height
-        self.map = Map(width, height)
         self.factory = game_piece.PieceFactory(self)
+        self.map = Map(self, width, height)
 
     def draw(self, console):
         self.map.draw(console)
