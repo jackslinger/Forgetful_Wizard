@@ -29,9 +29,16 @@ class Map:
 
     def draw(self, console):
         #The Map draws all of the tiles.
+        libtcod.console_set_default_foreground(console, libtcod.white)
+
         for y in range(self.height):
+            row = ''
             for x in range(self.width):
-                self.tiles[x][y].draw(console)
+                char = self.tiles[x][y].sprite.char
+                color = self.tiles[x][y].sprite.color
+                rgb = (color.r, color.g, color.b)
+                row += ('%c%c%c%c%c%c%c%c%c%c' % ((libtcod.COLCTRL_FORE_RGB, ) + rgb + (libtcod.COLCTRL_BACK_RGB, ) + (1,1,1) + (char, libtcod.COLCTRL_STOP)))
+            libtcod.console_print(console, 0, y, row)
 
     def carve_room(self, start_x, start_y, width, height):
         end_x = start_x + width - 1
@@ -101,7 +108,7 @@ class Map:
 
     def generate(self):
         bsp_root = libtcod.bsp_new_with_size(0, 0, self.width, self.height)
-        libtcod.bsp_split_recursive(bsp_root, None, 5, minHSize=11, minVSize=11, maxHRatio=1.0, maxVRatio=1.0)
+        libtcod.bsp_split_recursive(bsp_root, None, 8, minHSize=11, minVSize=11, maxHRatio=1.0, maxVRatio=1.0)
 
         rooms = []
         self.process_node(bsp_root, rooms)
@@ -118,6 +125,8 @@ class Map:
             room2 = rooms[indexes[1][i]]
             self.carve_corridor(room1.center_x, room1.center_y, room2.center_x, room1.center_y)
             self.carve_corridor(room2.center_x, room1.center_y, room2.center_x, room2.center_y)
+
+        return rooms
 
     def process_node(self, node, rooms):
         if libtcod.bsp_is_leaf(node):
@@ -146,21 +155,17 @@ class Board(object):
             piece.draw(console)
 
     def generate(self):
-        self.map.generate()
+        rooms = self.map.generate()
 
-        self.player = self.factory.createPiece('player', self.width/2, self.height/2)
-        self.pieces = [self.player]
-        self.game.add_actor(self.player)
-
-        orc = self.factory.createPiece('orc', 5, 5)
-        self.pieces.append(orc)
-        self.game.add_actor(orc)
-
-        # troll_fighter = game_piece.Fighter(hp=2, power=1, death_function=game_piece.monster_death)
-        # troll_ai = game_piece.BasicMonster()
-        # troll = game_piece.Piece(self, 35, (self.height/2)+4, 'T', libtcod.green, "Troll", blocks_passage=True, blocks_light=False, fighter=troll_fighter, ai=troll_ai)
-        # self.pieces.append(troll)
-        # self.game.add_actor(troll)
+        for i in range(len(rooms)):
+            if i == 0:
+                self.player = self.factory.createPiece('player', rooms[i].center_x, rooms[i].center_y)
+                self.pieces = [self.player]
+                self.game.add_actor(self.player)
+            else:
+                orc = self.factory.createPiece('orc', rooms[i].center_x, rooms[i].center_y)
+                self.pieces.append(orc)
+                self.game.add_actor(orc)
 
     def move_to_back(self, piece):
         #Move a piece to the start of the list so they are drawn first
