@@ -144,10 +144,16 @@ class BasicMonster:
         x = self.owner.x + int(round(dx / distance))
         y = self.owner.y + int(round(dy / distance))
 
+        move_action = game_engine.MoveAction(self.owner, x, y)
+        wait_action = game_engine.WaitAction(self.owner)
+
         if distance < 5:
-            return game_engine.MoveAction(self.owner, x, y)
+            if move_action.isValid()[0]:
+                return move_action
+            else:
+                return wait_action
         else:
-            return game_engine.WaitAction(self.owner)
+            return wait_action
 
 class StatusAffectedMonster:
     """AI code that takes status effects into account"""

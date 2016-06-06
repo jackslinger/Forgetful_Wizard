@@ -95,7 +95,7 @@ class MoveAction(object):
         self.x = x
         self.y = y
 
-    def perform(self):
+    def isValid(self):
         #Check if the destination is blocked by a piece
         blocking_piece = self.piece.board.is_blocked(self.x, self.y)
 
@@ -103,19 +103,27 @@ class MoveAction(object):
         if blocking_piece:
             #If blocked by a piece
             if isinstance(blocking_piece, game_piece.Piece) and self.piece.fighter and blocking_piece.fighter:
-                return True, AttackAction(self.piece, blocking_piece)
+                return False, AttackAction(self.piece, blocking_piece)
             return False, None
         else:
+            return True, None
+
+    def perform(self):
+        result, alternative = self.isValid()
+        if result:
             #Move to the destination
             self.piece.x = self.x
             self.piece.y = self.y
 
-            return True, None
+        return result, alternative
 
 class WaitAction(object):
     """The Wait Action encodes a piece standing still"""
     def __init__(self, piece):
         self.piece = piece
+
+    def isValid(self):
+        return True, None
 
     def perform(self):
         return True, None
@@ -125,6 +133,9 @@ class AttackAction(object):
     def __init__(self, attacker, defender):
         self.attacker = attacker
         self.defender = defender
+
+    def isValid(self):
+        return True, None
 
     def perform(self):
         self.defender.fighter.take_damage(self.attacker.fighter.power)
