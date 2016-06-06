@@ -27,18 +27,20 @@ class Game():
                 action = actor.ai.take_turn()
 
                 if not action:
-                    return
+                    return False
 
                 while(True):
                     result, alternative = action.perform()
-                    if not result:
-                        return
-                    if not alternative:
+                    if result:
                         break
+                    elif not alternative:
+                        return False
                     action = alternative
 
                 self.index += 1
                 self.index %= len(self.actors)
+
+                return True
 
 class Message:
     """Stores and prints a message buffer of a set size"""
