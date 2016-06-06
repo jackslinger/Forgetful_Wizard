@@ -4,7 +4,7 @@ import spells
 
 SCREEN_WIDTH = 80
 SCREEN_HEIGHT = 50
-LIMIT_FPS = 20
+LIMIT_FPS = 60
 
 MAP_WIDTH = 80
 MAP_HEIGHT = 41
@@ -99,7 +99,7 @@ def handle_keys(board, current_spell):
 libtcod.console_set_custom_font('arial10x10.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD)
 libtcod.console_init_root(SCREEN_WIDTH, SCREEN_HEIGHT, 'python/libtcod tutorial', False)
 
-libtcod.sys_set_fps(20)
+libtcod.sys_set_fps(LIMIT_FPS)
 
 con = libtcod.console_new(MAP_WIDTH, MAP_HEIGHT)
 
@@ -122,6 +122,12 @@ current_spell = spells.random_spell(board.player)
 status_bar = StatusBar(board.player, current_spell)
 
 while not libtcod.console_is_window_closed():
+	player_action = handle_keys(board, current_spell)
+	if player_action == "exit":
+		break
+
+	render = game.process_turn()
+
 	board.draw(con)
 	message_system.draw(panel)
 	status_bar.draw(status_panel)
@@ -130,9 +136,3 @@ while not libtcod.console_is_window_closed():
 	libtcod.console_blit(panel, 0, 0, SCREEN_WIDTH, PANEL_HEIGHT, 0, 0, PANEL_Y)
 	libtcod.console_blit(status_panel, 0, 0, SCREEN_WIDTH, 1, 0, 0, PANEL_Y-1)
 	libtcod.console_flush()
-
-	player_action = handle_keys(board, current_spell)
-	if player_action == "exit":
-		break
-
-	game.process_turn()
