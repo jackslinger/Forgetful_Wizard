@@ -107,6 +107,8 @@ class Map:
                 self.tiles[end_x - 1][y] = self.board.factory.createPiece('wall', end_x - 1, y)
 
     def generate(self):
+        self.tiles = [[self.board.factory.createPiece('empty', x, y) for y in range(self.height)] for x in range(self.width)]
+        
         bsp_root = libtcod.bsp_new_with_size(0, 0, self.width, self.height)
         libtcod.bsp_split_recursive(bsp_root, None, 8, minHSize=11, minVSize=11, maxHRatio=1.0, maxVRatio=1.0)
 
@@ -147,6 +149,7 @@ class Board(object):
         self.height = height
         self.factory = game_piece.PieceFactory(self)
         self.map = Map(self, width, height)
+        self.player = self.factory.createPiece('player')
 
     def draw(self, console):
         self.map.draw(console)
@@ -159,9 +162,14 @@ class Board(object):
 
         for i in range(len(rooms)):
             if i == 0:
-                self.player = self.factory.createPiece('player', rooms[i].center_x, rooms[i].center_y)
+                self.player.x = rooms[i].center_x
+                self.player.y = rooms[i].center_y
                 self.pieces = [self.player]
                 self.game.add_actor(self.player)
+            elif i == 1:
+                x = rooms[i].center_x
+                y = rooms[i].center_y
+                self.map.tiles[x][y] = self.factory.createPiece('down_stairs', x, y)
             else:
                 orc = self.factory.createPiece('orc', rooms[i].center_x, rooms[i].center_y)
                 self.pieces.append(orc)

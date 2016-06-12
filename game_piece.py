@@ -61,6 +61,8 @@ class PieceFactory:
             return Piece(self.board, x, y, '#', libtcod.white, 'Wall', blocks_passage=True, blocks_light=True, status=Status())
         elif identifier == 'floor':
             return Piece(self.board, x, y, '.', libtcod.white, 'Floor', blocks_passage=False, blocks_light=False, status=Status())
+        elif identifier == 'down_stairs':
+            return Piece(self.board, x, y, '>', libtcod.white, 'Down Stairs', blocks_passage=False, blocks_light=False, status=Status())
         elif identifier == 'empty':
             return Piece(self.board, x, y, ' ', libtcod.white, '', blocks_passage=False, blocks_light=False)
         elif identifier == 'player':

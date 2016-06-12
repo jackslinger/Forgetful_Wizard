@@ -84,6 +84,9 @@ def handle_keys(board, current_spell):
 			player.ai.set_action(MoveAction(player, player.x - 1, player.y + 1))
 		elif key.c == ord('n') or key.vk == libtcod.KEY_KP3:
 			player.ai.set_action(MoveAction(player, player.x + 1, player.y + 1))
+		elif key.c == ord('.') and key.shift:
+			if board.map.tiles[player.x][player.y].sprite.char == '>':
+				board.generate()
 		elif key.c == ord('.') or key.vk == libtcod.KEY_KP5:
 			#Wait in one place
 			player.ai.set_action(WaitAction(player))
